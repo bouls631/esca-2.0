@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+/* Sombre type terminal ; police mono système (aucune webfont → offline total) */
+:root {
+  color-scheme: dark;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+  background-color: theme(--color-zinc-950);
+}
+
+/* Zone pour la barre iOS en mode standalone */
+.safe-top { padding-top: env(safe-area-inset-top, 0px); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
