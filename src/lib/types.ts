@@ -5,6 +5,7 @@ export type Location = 'club' | 'maison' | 'repos_force';
 export type Energy = 1 | 2 | 3 | 4; // épuisé / fatigué / ok / pleine forme
 export type Pain = 'doigts' | 'avant_bras' | 'epaules' | 'dos' | 'aucune';
 export type Feel = 'facile' | 'moyen' | 'dur' | 'echec'; // ressenti dernière séance
+export type Ressenti = Exclude<Feel, 'echec'>; // ressenti d'un exercice (pas de voie)
 export type Intent = 'standard' | 'alleger' | 'renforcer' | 'reporter';
 export type Niveau = '5+' | '6a' | '6b' | '6b+' | '6c' | '7a';
 export type Chute = 'depart' | 'milieu' | 'fin' | 'top';
@@ -20,6 +21,7 @@ export interface Bloc {
   restMin?: number;
   done?: boolean;
   skipped?: boolean;
+  ressenti?: Ressenti; // exercice maison noté facile/moyen/dur → calibre les séries suivantes
 }
 
 export const ENERGY_LABELS = ['', 'épuisé', 'fatigué', 'ok', 'pleine forme'] as const;

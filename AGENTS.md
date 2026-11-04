@@ -11,14 +11,16 @@ Matos : club = mur 36 relais (max 5-6 voies, max 2× 6c) ; maison = poutre verti
 ```bash
 npm install       # installe (warning allow-scripts esbuild normal ; le build se fait quand même)
 npm run dev       # localhost:5173
-npm test          # 23 tests vitest (logique métier pure dans src/lib/)
+npm test          # 28 tests vitest (logique métier pure dans src/lib/)
 npm run build     # tsc --noEmit && vite build (strict, zéro erreur exigée)
 npm run icons     # regénère public/icons/*.png si un jour on change le logo (script sans dépendance)
 ```
 
 ## Déploiement (fragile — à connaître absolument)
 
-- Déploiement = **GitHub Pages via le workflow `.github/workflows/pages.yml`** (build + 23 tests + deploy-pages).
+- **Règle permanente : après toute modification, commit + `git push` sur `main`** (déploiement auto). Ne pas laisser
+  de travail non poussé « pour plus tard » : l'utilisateur teste sur son téléphone via GitHub Pages.
+- Déploiement = **GitHub Pages via le workflow `.github/workflows/pages.yml`** (build + 28 tests + deploy-pages).
 - ⚠ **Settings → Pages → Source doit rester "GitHub Actions"**. Si l'utilisateur repasse en "Deploy from a branch",
   GitHub sert à nouveau le repo brut (index.html source non transpilé, page blanche, pas de SW).
   Symptôme : https://bouls631.github.io/esca-2.0/ sert `<script src="/src/main.tsx">`.

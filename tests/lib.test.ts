@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { evaluateSurmenage, lastMardiIntense } from '../src/lib/surmenage';
-import { generateSeance } from '../src/lib/generator';
+import { generateSeance, maisonSeriesFor } from '../src/lib/generator';
 import { rotationFor } from '../src/lib/cycles';
 import { readinessAssessment, ready7a } from '../src/lib/readiness';
 import { analyses, gauges, microWorkout } from '../src/lib/analyse-causes';
@@ -111,7 +111,7 @@ describe('générateur de séances', () => {
   const ctx = (over: Partial<Parameters<typeof generateSeance>[0]> = {}) => ({
     type: 'intensite' as const, location: 'club' as const, energy: 3 as const, intent: 'standard' as const,
     readinessDrop: false, fail6c: false, mardiIntense: false, focus: 'devers' as const,
-    focusAutre: 'dalle' as const, liberation: false, gate7a: false, ...over,
+    focusAutre: 'dalle' as const, liberation: false, gate7a: false, maisonSeries: 3, ...over,
   });
 
   it('mardi fort + porte 7a + énergie 4 → projet 7a', () => {
@@ -151,6 +151,40 @@ describe('générateur de séances', () => {
   it('maison → plan poutre/anneaux, club → 2h mur', () => {
     expect(generateSeance(ctx({ location: 'maison' })).blocs.some((b) => b.titre.toLowerCase().includes('anneaux'))).toBe(true);
     expect(generateSeance(ctx({ location: 'repos_force' })).note).toContain('mobilité');
+  });
+  it('maison : séries du jour = maisonSeriesFor', () => {
+    const g = generateSeance(ctx({ location: 'maison', maisonSeries: 2 }));
+    expect(g.blocs.some((b) => b.detail.includes('2 × 8 tractions'))).toBe(true);
+    expect(g.note).toContain('on allège');
+  });
+});
+
+describe('ressenti des exos maison → séries suivantes', () => {
+  const blocs = (ressentis: Array<'facile' | 'moyen' | 'dur'>) =>
+    ressentis.map((ressenti, i) => ({ id: `b${i}`, titre: 'exo', detail: '', restMin: 0, done: true, ressenti }));
+  const maison = (ressentis: Array<'facile' | 'moyen' | 'dur'>, createdAt: number) => {
+    const ck = checkin({ id: ++sid, location: 'maison', createdAt });
+    return { ck, s: { id: ++sid, date: '2026-06-04', type: 'volume' as const, checkinId: ck.id, blocs: blocs(ressentis), createdAt } };
+  };
+
+  it('2 exos durs → 2 séries', () => {
+    const { s } = maison(['dur', 'dur', 'moyen'], now.getTime() - HOUR);
+    expect(maisonSeriesFor([s], [checkin({ id: s.checkinId, location: 'maison' })])).toBe(2);
+  });
+  it('2 exos faciles sans dur → 4 séries', () => {
+    const { s, ck } = maison(['facile', 'facile', 'moyen'], now.getTime() - HOUR);
+    expect(maisonSeriesFor([s], [ck])).toBe(4);
+  });
+  it('pas de séance maison / rien de noté → 3 séries', () => {
+    expect(maisonSeriesFor([], [])).toBe(3);
+    const ck = checkin({ id: ++sid, location: 'club' });
+    const s = { id: ++sid, date: '2026-06-04', type: 'volume' as const, checkinId: ck.id, blocs: blocs(['dur', 'dur']), createdAt: now.getTime() };
+    expect(maisonSeriesFor([s], [ck])).toBe(3);
+  });
+  it('seule la dernière séance maison compte', () => {
+    const old = maison(['dur', 'dur'], now.getTime() - 3 * 24 * HOUR);
+    const recent = maison(['facile', 'facile'], now.getTime() - HOUR);
+    expect(maisonSeriesFor([old.s, recent.s], [old.ck, recent.ck])).toBe(4);
   });
 });
 

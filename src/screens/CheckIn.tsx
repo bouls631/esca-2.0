@@ -7,7 +7,7 @@ import { Sheet } from '../components/Sheet';
 import { rotationFor } from '../lib/cycles';
 import { evaluateSurmenage, lastMardiIntense } from '../lib/surmenage';
 import { readinessAssessment, ready7a } from '../lib/readiness';
-import { generateSeance } from '../lib/generator';
+import { generateSeance, maisonSeriesFor } from '../lib/generator';
 import type { Intent, Location, Pain } from '../lib/types';
 
 const PAINS: Pain[] = ['doigts', 'avant_bras', 'epaules', 'dos', 'aucune'];
@@ -67,6 +67,7 @@ export function CheckInSheet({ open, onClose, data, now, onDone }: {
       fail6c: fail6c && type === 'intensite',
       mardiIntense: type === 'volume' && lastMardiIntense(data, now),
       focus, focusAutre, liberation: rotation.liberation, gate7a: gate,
+      maisonSeries: maisonSeriesFor(data.seances, data.checkins),
     });
     const ck: Checkin = {
       date: key,

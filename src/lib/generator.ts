@@ -1,4 +1,5 @@
 import type { Bloc, Energy, Intent, Profil, SessionType } from './types';
+import type { Checkin, Seance } from '../db';
 
 export interface GenCtx {
   type: SessionType;
@@ -12,6 +13,7 @@ export interface GenCtx {
   focusAutre: Profil | null;
   liberation: boolean;
   gate7a: boolean;
+  maisonSeries: number;
 }
 
 let seq = 0;
@@ -33,7 +35,10 @@ export function generateSeance(ctx: GenCtx): { type: SessionType; note?: string;
       ],
     };
   }
-  if (ctx.location === 'maison') return { type: 'volume', note: 'Séance maison — poutre, anneaux, corde à sauter.', blocs: maisonPlan() };
+  if (ctx.location === 'maison') {
+    const why = ctx.maisonSeries === 2 ? ' — dernière séance maison dure, on allège' : ctx.maisonSeries === 4 ? ' — dernière séance maison facile, on monte' : '';
+    return { type: 'volume', note: `Séance maison — poutre, anneaux, corde à sauter. ${ctx.maisonSeries} séries${why}.`, blocs: maisonPlan(ctx.maisonSeries) };
+  }
   if (ctx.type === 'intensite') {
     // Règle dure : 2 échecs consécutifs sur le même projet → stop, volume 6b
     if (ctx.fail6c) {
@@ -129,12 +134,24 @@ function volumeBlocs(mardiIntense: boolean, focus: Profil | null): Bloc[] {
   ];
 }
 
-function maisonPlan(): Bloc[] {
+function maisonPlan(series: number): Bloc[] {
   return [
-    bloc('Corde à sauter', '3 × 3 min, 1 min de repos entre chaque.', { restMin: 1 }),
-    bloc('Poutre lock-offs', '3 × 5 lock-offs de 10s (poutre verticale, prise confortable). Si douleur doigts → 3×30s deadhang léger.', { restMin: 2 }),
-    bloc('Anneaux', '3 × 8 tractions en pronation, corps gainé.', { restMin: 2 }),
+    bloc('Corde à sauter', `${series} × 3 min, 1 min de repos entre chaque.`, { restMin: 1 }),
+    bloc('Poutre lock-offs', `${series} × 5 lock-offs de 10s (poutre verticale, prise confortable). Si douleur doigts → ${series}×30s deadhang léger.`, { restMin: 2 }),
+    bloc('Anneaux', `${series} × 8 tractions en pronation, corps gainé.`, { restMin: 2 }),
     bloc('Footwork silent feet', '10 min sur la poutre : montées avec pieds silencieux.', { restMin: 0 }),
     bloc('Étirements', '5 min : avant-bras, épaules, hanches.', { restMin: 0 }),
   ];
+}
+
+/** Séries d'exos maison suivantes : 2 si la dernière séance maison a été dure (≥2 blocs « dur »), 4 si ≥2 faciles et aucun dur, sinon 3. */
+export function maisonSeriesFor(seances: Seance[], checkins: Checkin[]): number {
+  const maisonIds = new Set(checkins.filter((c) => c.location === 'maison' && c.id !== undefined).map((c) => c.id));
+  const last = seances
+    .filter((s) => s.checkinId !== undefined && maisonIds.has(s.checkinId) && s.blocs.some((b) => b.ressenti !== undefined))
+    .sort((a, b) => b.createdAt - a.createdAt)[0];
+  const r = (last?.blocs ?? []).map((b) => b.ressenti);
+  if (r.filter((x) => x === 'dur').length >= 2) return 2;
+  if (r.filter((x) => x === 'facile').length >= 2 && !r.includes('dur')) return 4;
+  return 3;
 }

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { format, subDays } from 'date-fns';
 import type { AppData } from '../App';
-import { db, NIVEAU_LABELS, PROFIL_LABELS, SESSION_LABELS, type Bloc, type Niveau, type Profil } from '../db';
+import { db, FEEL_LABELS, NIVEAU_LABELS, PROFIL_LABELS, SESSION_LABELS, type Bloc, type Niveau, type Profil, type Ressenti } from '../db';
 import { Btn, Card, Chip, Tag, TimerCard, cx, useTimer } from '../components/ui';
 import { CheckInSheet } from './CheckIn';
 import { JournalVoie } from './JournalVoie';
@@ -12,6 +12,8 @@ import { useSwipe } from '../lib/useSwipe';
 import { timer } from '../lib/timer';
 
 interface JournalTarget { seanceId?: number; blocId?: string; niveau?: Niveau; profil?: Profil }
+
+const RESSENTIS: Ressenti[] = ['facile', 'moyen', 'dur'];
 
 export default function Seance({ data, now }: { data: AppData; now: Date }) {
   const key = format(now, 'yyyy-MM-dd');
@@ -33,6 +35,17 @@ export default function Seance({ data, now }: { data: AppData; now: Date }) {
   async function skipBloc(blocId: string, skipped: boolean) {
     if (!seance?.id) return;
     await db.seances.update(seance.id, { blocs: seance.blocs.map((b) => (b.id === blocId ? { ...b, skipped, done: skipped ? false : b.done } : b)) });
+  }
+
+  /** Exercice (pas une voie) : cocher sans journal. */
+  async function toggleDone(blocId: string) {
+    if (!seance?.id) return;
+    await db.seances.update(seance.id, { blocs: seance.blocs.map((b) => (b.id === blocId ? { ...b, done: !b.done, skipped: false } : b)) });
+  }
+
+  async function setRessenti(blocId: string, r: Ressenti) {
+    if (!seance?.id) return;
+    await db.seances.update(seance.id, { blocs: seance.blocs.map((b) => (b.id === blocId ? { ...b, done: true, skipped: false, ressenti: b.ressenti === r ? undefined : r } : b)) });
   }
 
   async function overrideRisk() {
@@ -91,16 +104,22 @@ export default function Seance({ data, now }: { data: AppData; now: Date }) {
 
           {!hardBlocked && (
             <div className="space-y-2">
-              {seance.blocs.map((b) => (
-                <BlocCard
-                  key={b.id}
-                  bloc={b}
-                  onFait={() => setJournal({ seanceId: seance.id, blocId: b.id, niveau: b.niveau, profil: focus ?? 'dalle' })}
-                  onRepor={() => void skipBloc(b.id, !b.skipped)}
-                  onModifie={() => setJournal({ seanceId: seance.id, profil: focus ?? 'dalle' })}
-                  canLog={seance.type !== 'volume' || b.niveau !== undefined}
-                />
-              ))}
+              {seance.blocs.map((b) => {
+                const grimpable = b.niveau !== undefined;
+                return (
+                  <BlocCard
+                    key={b.id}
+                    bloc={b}
+                    onFait={() => (grimpable
+                      ? setJournal({ seanceId: seance.id, blocId: b.id, niveau: b.niveau, profil: focus ?? 'dalle' })
+                      : void toggleDone(b.id))}
+                    onRepor={() => void skipBloc(b.id, !b.skipped)}
+                    onModifie={() => setJournal({ seanceId: seance.id, profil: focus ?? 'dalle' })}
+                    onRessenti={grimpable ? undefined : (r) => void setRessenti(b.id, r)}
+                    canLog={grimpable}
+                  />
+                );
+              })}
             </div>
           )}
 
@@ -132,7 +151,9 @@ export default function Seance({ data, now }: { data: AppData; now: Date }) {
             </Card>
           )}
 
-          <Btn size="lg" variant="ghost" onClick={() => setJournal({ seanceId: seance.id, profil: focus ?? 'dalle' })}>+ Noter une voie</Btn>
+          {seance.blocs.some((b) => b.niveau !== undefined) && (
+            <Btn size="lg" variant="ghost" onClick={() => setJournal({ seanceId: seance.id, profil: focus ?? 'dalle' })}>+ Noter une voie</Btn>
+          )}
         </>
       )}
 
@@ -156,11 +177,12 @@ export default function Seance({ data, now }: { data: AppData; now: Date }) {
 }
 
 /** Carte de bloc : swipe droite = Fait, gauche = Reporté, bas = Modifié (boutons en secours). */
-function BlocCard({ bloc, onFait, onRepor, onModifie, canLog }: {
+function BlocCard({ bloc, onFait, onRepor, onModifie, onRessenti, canLog }: {
   bloc: Bloc;
   onFait: () => void;
   onRepor: () => void;
   onModifie: () => void;
+  onRessenti?: (r: Ressenti) => void;
   canLog: boolean;
 }) {
   const swipe = useSwipe({ onRight: onFait, onLeft: onRepor, onDown: onModifie });
@@ -182,11 +204,14 @@ function BlocCard({ bloc, onFait, onRepor, onModifie, canLog }: {
         </div>
         <p className="mt-1 font-mono text-xs leading-relaxed text-zinc-400">{bloc.detail}</p>
       </div>
-      <div className="mt-3 flex gap-2">
+      <div className="mt-3 flex flex-wrap gap-2">
         {bloc.restMin ? (
           <Chip onClick={() => timer.start(bloc.restMin!)} className={t.running ? 'text-amber-300' : undefined}>Repos {bloc.restMin}′</Chip>
         ) : null}
         <Chip selected={bloc.done} onClick={onFait}>Fait</Chip>
+        {onRessenti && RESSENTIS.map((r) => (
+          <Chip key={r} selected={bloc.ressenti === r} onClick={() => onRessenti(r)}>{FEEL_LABELS[r]}</Chip>
+        ))}
         <Chip selected={bloc.skipped} onClick={onRepor}>{bloc.skipped ? 'Réactivé' : 'Reporté'}</Chip>
         {canLog && <Chip onClick={onModifie}>Noter</Chip>}
       </div>
