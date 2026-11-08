@@ -66,7 +66,7 @@ export function generateSeance(ctx: GenCtx): { type: SessionType; note?: string;
         blocs: [
           bloc('Échauffement', `2 voies 5+/6a fluides (${profilText(ctx.focus)}), note mentale sur chaque pied.`, { niveau: '6a', restMin: 5 }),
           bloc('Projet 6c', '1 essai chrono (relief honnête, 15 min de repos avant). Pas de 2e essai en cas d\'échec franc.', { niveau: '6c', restMin: 15 }),
-          bloc('Technique facile', `2 voies 6b max, lecture précise, sans échec (${profilText(ctx.focus)}).`, { niveau: '6b', restMin: 8 }),
+          bloc('Technique facile', `5 voies 6b max, lecture précise, sans échec (${profilText(ctx.focus)}).`, { niveau: '6b', restMin: 8 }),
           bloc('Retour au calme', '1 voie 6a fluide + étirements 5 min.', { niveau: '6a', restMin: 0 }),
         ],
       };
@@ -99,11 +99,11 @@ export function generateSeance(ctx: GenCtx): { type: SessionType; note?: string;
     // Forme 😐 (energy 3)
     return {
       type: 'intensite',
-      note: 'Forme moyenne : 1× 6c (2 essais) + 1× 6b+ précis.',
+      note: 'Forme moyenne : 1× 6c (2 essais) + 4× 6b+ précis.',
       blocs: [
         bloc('Échauffement', `2 voies 5+/6a fluides (${profilText(ctx.focus)}).`, { niveau: '6a', restMin: 5 }),
         bloc('6c', `2 essais max sur un 6c (${profilText(ctx.focus)}). 15 min de repos entre essais.`, { niveau: '6c', restMin: 15 }),
-        bloc('6b+ technique', '1 voie 6b+, pieds précis et silence au vocabulaire.', { niveau: '6b+', restMin: 10 }),
+        bloc('6b+ technique', '4 voies 6b+, pieds précis et silence au vocabulaire.', { niveau: '6b+', restMin: 10 }),
         bloc('Retour au calme', '1 voie 6a fluide + étirements.', { niveau: '6a', restMin: 0 }),
       ],
     };
@@ -112,14 +112,15 @@ export function generateSeance(ctx: GenCtx): { type: SessionType; note?: string;
   return {
     type: 'volume',
     note: ctx.mardiIntense
-      ? 'Mardi était intense → 4 voies max, aucun 6c en finisher. Chute sur 6b → redescends tout de suite : voie suivante, pas de nouvel essai.'
-      : `Mardi facile → 6 voies dont 1× 6c "test fatigue" en finisher (${profilText(ctx.focus)}). Chute sur 6b → redescends : voie suivante, pas de nouvel essai.`,
+      ? 'Mardi était intense → 7 voies max, aucun 6c en finisher. Chute sur 6b → redescends tout de suite : voie suivante, pas de nouvel essai.'
+      : `Mardi facile → 9 voies dont 1× 6c "test fatigue" en finisher (${profilText(ctx.focus)}). Chute sur 6b → redescends : voie suivante, pas de nouvel essai.`,
     blocs: volumeBlocs(ctx.mardiIntense, ctx.focus),
   };
 }
 
 function volumeBlocs(mardiIntense: boolean, focus: Profil | null): Bloc[] {
-  const n = mardiIntense ? 4 : 6;
+  // +3 voies : l'utilisateur grimpe toujours au moins 3 voies de plus que le plan → déjà comptées.
+  const n = mardiIntense ? 7 : 9;
   const finisher = mardiIntense
     ? undefined
     : bloc('Finisher 6c', '1 voie 6c "test fatigue" : l\'objectif est de tenir dans la pompe, pas de top.', { niveau: '6c', restMin: 12 });

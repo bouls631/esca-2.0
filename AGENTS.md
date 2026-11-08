@@ -33,7 +33,7 @@ npm run icons     # regénère public/icons/*.png si un jour on change le logo (
 - `src/lib/types.ts` = source de vérité des unions + libellés FR (UI n'invente pas de libellés).
 - Logique métier **100 % pure** dans `src/lib/` (surmenage, readiness, generator, analyse-causes, cycles) → tests dans `tests/lib.test.ts`. Pas d'algo caché dans les composants.
 - Données : Dexie (`src/db.ts`), tables `profile / checkins / seances / voies / readiness`. Tout local, export JSON dans Stats.
-- Séance "mardi intense" = essais 6c/7a loggés → calibre le volume du jeudi (4 voies, pas de 6c).
+- Séance "mardi intense" = essais 6c/7a loggés → calibre le volume du jeudi (7 voies, pas de 6c).
 - Porte 7a : 3 tops 6c le mardi en 4 semaines + readiness stable + pas de blocage 14 j.
 - Readiness : baisse >20 % vs moyenne des 4 tests précédents → intensité −20 %.
 - Override « J'assume le risque » : toujours possible, **majudra** noté (`checkin.override: true`, marqué ⚠ dans Stats).

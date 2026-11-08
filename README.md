@@ -95,7 +95,7 @@ Micro-workout maison (10 min, mercredi/vendredi) prescrit selon la dernière cau
 
 ### 1) Semaine type
 - **Mardi** (semaine 1 = dévers) — check-in : ok, ok, aucune, moyen → plan : 2 voies 5+/6a fluides → 2× 6c dévers (2 essais chacun, repos 15 min) → 6b+ technique → retour au calme. Journal : 6c #1 `Top ✓`, 6c #2 `Milieu — souffle`, 6b+ `Top ✓`.
-- **Jeudi** — mardi était intense : 6a échauffement → 4 voies 6a/6b dalle (repos 8-12 min, timer) → pas de 6c. Journal noté voie par voie.
+- **Jeudi** — mardi était intense : 6a échauffement → 7 voies 6a/6b dalle (repos 8-12 min, timer) → pas de 6c. Journal noté voie par voie.
 
 ### 2) Semaine avec alerte surmenage
 - **Mardi -1** : 6c → `Fin — souffle`. **Mardi J** : check-in ok → 6c → `Milieu — force`.
@@ -104,7 +104,7 @@ Micro-workout maison (10 min, mercredi/vendredi) prescrit selon la dernière cau
 
 ### 3) Semaine avec adaptation (readiness bas)
 - **Dimanche** : deadhang 76s vs moyenne 100s (−24 %) → le test est invalidé (>20 %).
-- **Mardi** : check-in pleine forme → plan allégé « intensité −20 % » : 2 voies 5+/6a → **1 essai chrono 6c** (pas de 2e essai si échec franc) → 2 voies 6b lecture → retour au calme. La porte 7a reste fermée jusqu'à un readiness stable.
+- **Mardi** : check-in pleine forme → plan allégé « intensité −20 % » : 2 voies 5+/6a → **1 essai chrono 6c** (pas de 2e essai si échec franc) → 5 voies 6b lecture → retour au calme. La porte 7a reste fermée jusqu'à un readiness stable.
 
 ## Choix techniques
 

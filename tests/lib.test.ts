@@ -139,14 +139,16 @@ describe('générateur de séances', () => {
     expect(g.type).toBe('volume');
     expect(g.note).toContain('volume');
   });
-  it('mardi intense → jeudi limité à 4 voies, pas de 6c', () => {
+  it('mardi intense → jeudi limité à 7 voies, pas de 6c', () => {
     const g = generateSeance(ctx({ type: 'volume', mardiIntense: true }));
     expect(g.blocs.some((b) => b.niveau === '6c')).toBe(false);
     expect(g.note).toContain('Mardi était intense');
+    expect(g.note).toContain('7 voies');
   });
-  it('mardi facile → 6 voies + 6c test fatigue', () => {
+  it('mardi facile → 9 voies + 6c test fatigue', () => {
     const g = generateSeance(ctx({ type: 'volume' }));
     expect(g.blocs.some((b) => b.niveau === '6c')).toBe(true);
+    expect(g.note).toContain('9 voies');
   });
   it('maison → plan poutre/anneaux, club → 2h mur', () => {
     expect(generateSeance(ctx({ location: 'maison' })).blocs.some((b) => b.titre.toLowerCase().includes('anneaux'))).toBe(true);
