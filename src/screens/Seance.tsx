@@ -10,7 +10,7 @@ import { rotationFor } from '../lib/cycles';
 import { analyses } from '../lib/analyse-causes';
 import { useSwipe } from '../lib/useSwipe';
 import { timer } from '../lib/timer';
-import { cotationToNiveau, secteurToProfil, suggestRoutesFor, type OblykRoute } from '../lib/routes';
+import { cotationToNiveau, relaisToProfil, suggestRoutesFor, type OblykRoute } from '../lib/routes';
 
 interface JournalTarget {
   seanceId?: number;
@@ -126,7 +126,7 @@ export default function Seance({ data, now, go }: { data: AppData; now: Date; go
                       seanceId: seance.id,
                       blocId: b.id,
                       niveau: cotationToNiveau(r.cotation),
-                      profil: secteurToProfil(r.secteur),
+                      profil: relaisToProfil(r.relais),
                       relais: r.relais ?? undefined,
                       secteur: r.secteur ?? undefined,
                       couleur: r.couleur ?? undefined,

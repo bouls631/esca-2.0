@@ -85,25 +85,16 @@ export function generateSeance(ctx: GenCtx): { type: SessionType; note?: string;
           ],
         };
       }
-      return {
-        type: 'intensite',
-        note: '🔥 Forme haute : 2 voies 6c (2 essais chacune) sur ' + profilText(ctx.focus) + '.',
-        blocs: [
-          bloc('Échauffement', `2 voies 5+/6a fluides (spécifique ${profilText(ctx.focus)}).`, { niveau: '6a', restMin: 5 }),
-          bloc('6c #1', `2 essais max sur un 6c (${profilText(ctx.focus)}). 15 min de repos entre essais.`, { niveau: '6c', restMin: 15 }),
-          bloc('6c #2', '2 essais max sur un second 6c (profil différent du #1).', { niveau: '6c', restMin: 15 }),
-          bloc('Retour au calme', '1 voie 6a fluide + étirements.', { niveau: '6a', restMin: 0 }),
-        ],
-      };
     }
-    // Forme 😐 (energy 3)
     return {
       type: 'intensite',
-      note: 'Forme moyenne : 1× 6c (2 essais) + 4× 6b+ précis.',
+      note: `Séance intensité : 5c → 6a → 2× 6c → 6b → 6a (${profilText(ctx.focus)}).`,
       blocs: [
-        bloc('Échauffement', `2 voies 5+/6a fluides (${profilText(ctx.focus)}).`, { niveau: '6a', restMin: 5 }),
-        bloc('6c', `2 essais max sur un 6c (${profilText(ctx.focus)}). 15 min de repos entre essais.`, { niveau: '6c', restMin: 15 }),
-        bloc('6b+ technique', '4 voies 6b+, pieds précis et silence au vocabulaire.', { niveau: '6b+', restMin: 10 }),
+        bloc('Échauffement 5c', `1 voie 5c fluide (${profilText(ctx.focus)}).`, { niveau: '5+', restMin: 5 }),
+        bloc('6a', '1 voie 6a fluide, zéro échec.', { niveau: '6a', restMin: 5 }),
+        bloc('6c #1', `2 essais max sur un 6c (${profilText(ctx.focus)}). 15 min de repos entre essais.`, { niveau: '6c', restMin: 15 }),
+        bloc('6c #2', '2 essais max sur un second 6c (profil différent du #1).', { niveau: '6c', restMin: 15 }),
+        bloc('6b', '1 voie 6b, lecture précise.', { niveau: '6b', restMin: 10 }),
         bloc('Retour au calme', '1 voie 6a fluide + étirements.', { niveau: '6a', restMin: 0 }),
       ],
     };

@@ -4,7 +4,7 @@ import { generateSeance, maisonSeriesFor } from '../src/lib/generator';
 import { rotationFor } from '../src/lib/cycles';
 import { readinessAssessment, ready7a } from '../src/lib/readiness';
 import { analyses, gauges, microWorkout } from '../src/lib/analyse-causes';
-import { cotationToNiveau, filterRoutes, RAPPEL_ROUTES, secteurToProfil, suggestRoutesFor, uniqueGrades } from '../src/lib/routes';
+import { cotationToNiveau, filterRoutes, RAPPEL_ROUTES, relaisToProfil, suggestRoutesFor, uniqueGrades } from '../src/lib/routes';
 import { coachLevelVerdict, cycleInfo, fingerBestByHold, fingerSpec, homeSpec, levelConfig, profileSuccessStats } from '../src/lib/plan';
 import type { Checkin, ReadinessTest, Seance, Voie } from '../src/db';
 
@@ -121,10 +121,9 @@ describe('générateur de séances', () => {
     expect(g.type).toBe('intensite');
     expect(g.blocs.some((b) => b.niveau === '7a')).toBe(true);
   });
-  it('mardi énergie 3 → 6c + 6b+', () => {
+  it('mardi intensité → 5c, 6a, 2× 6c, 6b, 6a dans cet ordre', () => {
     const g = generateSeance(ctx());
-    expect(g.blocs.some((b) => b.niveau === '6c')).toBe(true);
-    expect(g.blocs.some((b) => b.niveau === '6b+')).toBe(true);
+    expect(g.blocs.map((b) => b.niveau)).toEqual(['5+', '6a', '6c', '6c', '6b', '6a']);
   });
   it('readiness en baisse → intensité −20% (1 seul essai chrono + volume facile)', () => {
     const g = generateSeance(ctx({ readinessDrop: true }));
@@ -227,7 +226,10 @@ describe('intégration Oblyk RAPPEL & cycle 12 semaines (Escalade Pro)', () => {
     const sixB = filterRoutes(33, 33);
     expect(sixB.every((r) => r.cotation === '6b')).toBe(true);
     expect(cotationToNiveau('6a+')).toBe('6a');
-    expect(secteurToProfil('Mur droite dévers')).toBe('devers');
+    expect(relaisToProfil(1)).toBe('dalle');
+    expect(relaisToProfil(15)).toBe('devers');
+    expect(relaisToProfil(25)).toBe('toit');
+    expect(relaisToProfil(36)).toBe('devers');
     expect(suggestRoutesFor('6c', 'devers').length).toBeGreaterThan(0);
   });
 

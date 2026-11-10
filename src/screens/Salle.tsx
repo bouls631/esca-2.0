@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import type { AppData } from '../App';
 import { Btn, Card, Chip, Tag } from '../components/ui';
-import { cotationToNiveau, filterRoutes, RAPPEL_ROUTES, secteurToProfil, uniqueGrades, type OblykRoute } from '../lib/routes';
+import { cotationToNiveau, filterRoutes, RAPPEL_ROUTES, relaisToProfil, uniqueGrades, type OblykRoute } from '../lib/routes';
 import { JournalVoie } from './JournalVoie';
 
 const GRADES = uniqueGrades(RAPPEL_ROUTES);
@@ -224,7 +224,7 @@ export default function Salle({ data, now }: { data: AppData; now: Date }) {
         onClose={() => setLogRoute(null)}
         seanceId={todaySeance?.id}
         defaultNiveau={logRoute ? cotationToNiveau(logRoute.cotation) : undefined}
-        defaultProfil={logRoute ? secteurToProfil(logRoute.secteur) : undefined}
+        defaultProfil={logRoute ? relaisToProfil(logRoute.relais) : undefined}
         defaultRelais={logRoute?.relais ?? undefined}
         defaultSecteur={logRoute?.secteur ?? undefined}
         defaultCouleur={logRoute?.couleur ?? undefined}

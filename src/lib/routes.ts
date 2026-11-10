@@ -26,14 +26,13 @@ export function cotationToNiveau(cot: string): Niveau {
   return '7a';
 }
 
-/** Déduit le profil du mur depuis le nom du secteur de la salle RAPPEL. */
-export function secteurToProfil(secteur: string | null): Profil {
-  const s = (secteur ?? '').toLowerCase();
-  if (s.includes('dévers') || s.includes('devers')) return 'devers';
-  if (s.includes('dièdre') || s.includes('diedre')) return 'diedre';
-  if (s.includes('toit')) return 'toit';
-  if (s.includes('arête') || s.includes('arete')) return 'arete';
-  return 'dalle';
+/** Profil du mur d'après le n° de relais (1-11 dalle, 12-19 dévers, 20-33 toit, 34-36 dévers). */
+export function relaisToProfil(relais: number | null): Profil {
+  if (relais === null) return 'dalle';
+  if (relais <= 11) return 'dalle';
+  if (relais <= 19) return 'devers';
+  if (relais <= 33) return 'toit';
+  return 'devers';
 }
 
 /** Cotations uniques présentes dans la salle, triées par difficulté croissante. */
@@ -67,6 +66,6 @@ export function filterRoutes(
 export function suggestRoutesFor(niveau: Niveau, profil?: Profil | null, limit = 3): OblykRoute[] {
   const matchesGrade = RAPPEL_ROUTES.filter((r) => cotationToNiveau(r.cotation) === niveau);
   if (!profil) return matchesGrade.slice(0, limit);
-  const byProfil = matchesGrade.filter((r) => secteurToProfil(r.secteur) === profil);
+  const byProfil = matchesGrade.filter((r) => relaisToProfil(r.relais) === profil);
   return (byProfil.length > 0 ? byProfil : matchesGrade).slice(0, limit);
 }
