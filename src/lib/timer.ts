@@ -43,9 +43,18 @@ export const timer = {
     return () => { subs.delete(fn); };
   },
   start(minutes: number) {
+    this.startSec(minutes * 60);
+  },
+  startSec(seconds: number) {
     halt();
-    s = { total: minutes * 60, left: minutes * 60, running: true };
+    const total = Math.max(1, Math.round(seconds));
+    s = { total, left: total, running: true };
     h = setInterval(tick, 1000);
+    emit();
+  },
+  adjust(deltaSec: number) {
+    if (s.total <= 0) return;
+    s = { ...s, left: Math.max(5, s.left + deltaSec), total: Math.max(s.total, s.left + deltaSec) };
     emit();
   },
   pause() {

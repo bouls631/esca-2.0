@@ -1,21 +1,25 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { format, subDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import type { AppData } from '../App';
-import { AXIS_LABELS, exportAll, type Axis, type Niveau } from '../db';
+import { AXIS_LABELS, exportAll, importAll, PROFIL_LABELS, type Axis, type Niveau } from '../db';
 import { Bar, Btn, Card, Tag } from '../components/ui';
 import { ReadinessSheet } from './ReadinessSheet';
 import { evaluateSurmenage } from '../lib/surmenage';
 import { ready7a, readinessAssessment } from '../lib/readiness';
 import { analyses, gauges } from '../lib/analyse-causes';
+import { fingerBestByHold, HOLD_LABELS, profileSuccessStats } from '../lib/plan';
 
 const AXES: Axis[] = ['force', 'endurance', 'technique', 'mental'];
 
 export default function Stats({ data, now }: { data: AppData; now: Date }) {
   const [readinessOpen, setReadinessOpen] = useState(false);
+  const fileRef = useRef<HTMLInputElement | null>(null);
   const verdict = evaluateSurmenage(data, now);
   const gate = ready7a({ seances: data.seances, voies: data.voies, readiness: data.readiness }, now, verdict);
   const ra = readinessAssessment(data.readiness);
+  const pStats = profileSuccessStats(data.voies);
+  const fBest = fingerBestByHold(data.finger);
 
   const voies14 = data.voies.filter((v) => v.date >= subDays(now, 14).getTime());
   const g = gauges(voies14);
@@ -43,6 +47,19 @@ export default function Stats({ data, now }: { data: AppData; now: Date }) {
     a.download = `coach-voie-${format(now, 'yyyy-MM-dd')}.json`;
     a.click();
     URL.revokeObjectURL(a.href);
+  }
+
+  async function doImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const txt = await file.text();
+      await importAll(JSON.parse(txt) as Record<string, unknown>);
+    } catch {
+      alert('Fichier de sauvegarde invalide.');
+    } finally {
+      e.target.value = '';
+    }
   }
 
   return (
@@ -96,7 +113,11 @@ export default function Stats({ data, now }: { data: AppData; now: Date }) {
       <Card>
         <div className="flex items-center justify-between">
           <p className="font-mono text-xs font-bold uppercase tracking-widest text-zinc-500">Historique</p>
-          <Btn className="min-h-8 px-2 py-1 text-xs" onClick={() => void doExport()}>Export JSON</Btn>
+          <div className="flex gap-1.5">
+            <input ref={fileRef} type="file" accept="application/json" className="hidden" onChange={(e) => void doImport(e)} />
+            <Btn variant="ghost" className="min-h-8 px-2 py-1 text-xs" onClick={() => fileRef.current?.click()}>Import JSON</Btn>
+            <Btn className="min-h-8 px-2 py-1 text-xs" onClick={() => void doExport()}>Export JSON</Btn>
+          </div>
         </div>
         <div className="mt-2 space-y-1.5">
           {sessions.length === 0 && <p className="font-mono text-xs text-zinc-500">Aucune séance enregistrée.</p>}
@@ -118,6 +139,47 @@ export default function Stats({ data, now }: { data: AppData; now: Date }) {
       </Card>
 
       <Card>
+        <p className="font-mono text-xs font-bold uppercase tracking-widest text-zinc-500">Réussite par profil</p>
+        {pStats.list.length === 0 ? (
+          <p className="mt-2 font-mono text-xs text-zinc-500">Note des voies pour voir tes taux par profil.</p>
+        ) : (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {pStats.list.map((x) => (
+              <span
+                key={x.profil}
+                className="rounded-full border border-zinc-700 bg-zinc-950 px-2.5 py-1 font-mono text-xs text-zinc-300"
+              >
+                {PROFIL_LABELS[x.profil]} <b className="text-emerald-400">{x.pct}%</b> · {x.n}v
+              </span>
+            ))}
+          </div>
+        )}
+        {pStats.weak && (
+          <p className="mt-2 font-mono text-xs text-amber-300">
+            Point faible : <b>{PROFIL_LABELS[pStats.weak.profil]}</b> ({pStats.weak.pct}% sur {pStats.weak.n} voies) — à prioriser le jeudi.
+          </p>
+        )}
+      </Card>
+
+      {data.finger.length > 0 && (
+        <Card>
+          <p className="font-mono text-xs font-bold uppercase tracking-widest text-zinc-500">Records force de doigts (poutre)</p>
+          <p className="mt-1 font-mono text-xs text-emerald-300">
+            {Object.entries(fBest)
+              .map(([h, kg]) => `${HOLD_LABELS[h] ?? h} : ${kg > 0 ? `+${kg} kg` : 'poids du corps'}`)
+              .join(' · ')}
+          </p>
+          <div className="mt-2 space-y-1">
+            {data.finger.slice().sort((a, b) => b.createdAt - a.createdAt).slice(0, 5).map((f) => (
+              <p key={f.id} className="font-mono text-xs text-zinc-400">
+                {f.date} (S{f.week}) · {f.sets}×{f.work}s en {f.hold} · {f.kg > 0 ? `+${f.kg} kg` : 'PDC'}
+              </p>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      <Card>
         <div className="flex items-center justify-between">
           <p className="font-mono text-xs font-bold uppercase tracking-widest text-zinc-500">Readiness</p>
           <Btn className="min-h-8 px-2 py-1 text-xs" onClick={() => setReadinessOpen(true)}>Nouveau test</Btn>
@@ -130,6 +192,15 @@ export default function Stats({ data, now }: { data: AppData; now: Date }) {
         ) : (
           <p className="mt-2 font-mono text-xs text-zinc-500">Aucun test enregistré.</p>
         )}
+      </Card>
+
+      <Card className="border-red-900/60 bg-red-950/15">
+        <p className="font-mono text-xs font-bold uppercase tracking-widest text-red-300">Santé des doigts</p>
+        <p className="mt-1 font-mono text-xs leading-relaxed text-zinc-300">
+          <b className="text-red-300">Stop immédiat</b> si douleur vive dans un doigt (poulie/tendon).{' '}
+          <b className="text-amber-300">1 semaine de repos</b> si douleur articulaire persistante.{' '}
+          <b className="text-emerald-300">Normal</b> : raideur matinale qui disparaît en 10 min. Mieux vaut 2 semaines de repos que 6 mois d'arrêt.
+        </p>
       </Card>
 
       <ReadinessSheet open={readinessOpen} onClose={() => setReadinessOpen(false)} profile={data.profile} existing={data.readiness} />

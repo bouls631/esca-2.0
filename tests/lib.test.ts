@@ -4,6 +4,8 @@ import { generateSeance, maisonSeriesFor } from '../src/lib/generator';
 import { rotationFor } from '../src/lib/cycles';
 import { readinessAssessment, ready7a } from '../src/lib/readiness';
 import { analyses, gauges, microWorkout } from '../src/lib/analyse-causes';
+import { cotationToNiveau, filterRoutes, RAPPEL_ROUTES, secteurToProfil, suggestRoutesFor, uniqueGrades } from '../src/lib/routes';
+import { coachLevelVerdict, cycleInfo, fingerBestByHold, fingerSpec, homeSpec, levelConfig, profileSuccessStats } from '../src/lib/plan';
 import type { Checkin, ReadinessTest, Seance, Voie } from '../src/db';
 
 const MIN = 60_000;
@@ -215,5 +217,44 @@ describe('analyse des causes', () => {
     const vs = [voie(-10 * MIN, '6c', 'fin', 'force', ses[0].id)];
     expect(lastMardiIntense(U([checkin()], ses, vs), now)).toBe(true);
     expect(lastMardiIntense(U([checkin()], ses, []), now)).toBe(false);
+  });
+});
+
+describe('intégration Oblyk RAPPEL & cycle 12 semaines (Escalade Pro)', () => {
+  it('charge les voies de la salle RAPPEL et filtre par cotation/secteur', () => {
+    expect(RAPPEL_ROUTES.length).toBeGreaterThan(50);
+    expect(uniqueGrades().length).toBeGreaterThan(10);
+    const sixB = filterRoutes(33, 33);
+    expect(sixB.every((r) => r.cotation === '6b')).toBe(true);
+    expect(cotationToNiveau('6a+')).toBe('6a');
+    expect(secteurToProfil('Mur droite dévers')).toBe('devers');
+    expect(suggestRoutesFor('6c', 'devers').length).toBeGreaterThan(0);
+  });
+
+  it('calcule le niveau 5b→8a, le cycle 12 semaines et les séquences doigts/anneaux', () => {
+    expect(levelConfig(1).grade).toBe('5b');
+    expect(levelConfig(5).grade).toBe('6c');
+    expect(levelConfig(9).grade).toBe('8a');
+    const c4 = cycleInfo(now, '2026-05-19', 0); // 3 semaines avant → S4 décharge
+    expect(c4.week).toBe(4);
+    expect(c4.deload).toBe(true);
+    const f = fingerSpec(levelConfig(5), c4);
+    expect(f.seq[0].d).toBe(10);
+    expect(f.seq.length).toBe(f.sets * 3 - 1);
+    const h = homeSpec(levelConfig(5), c4);
+    expect(h.seq.some((p) => p.k === 'wait')).toBe(true);
+    expect(fingerBestByHold([{ date: '2026-06-01', hold: '15mm', kg: 10, sets: 5, work: 7, week: 1, createdAt: 1 }])['15mm']).toBe(10);
+  });
+
+  it('désigne le profil faible et le verdict coach sur 21 jours', () => {
+    const vs: Voie[] = [
+      { ...voie(-2 * 24 * HOUR, '6c', 'top'), profil: 'dalle' },
+      { ...voie(-3 * 24 * HOUR, '6c', 'top'), profil: 'dalle' },
+      { ...voie(-4 * 24 * HOUR, '6c', 'fin', 'force'), profil: 'devers' },
+      { ...voie(-5 * 24 * HOUR, '6c', 'fin', 'force'), profil: 'devers' },
+    ];
+    expect(profileSuccessStats(vs).weak?.profil).toBe('devers');
+    const fiveTops = [0, 1, 2, 3, 4].map((d) => voie(-d * 24 * HOUR, '6c', 'top'));
+    expect(coachLevelVerdict(fiveTops, '6c', now).delta).toBe(1);
   });
 });

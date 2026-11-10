@@ -117,11 +117,37 @@ export function TimerCard({ presets = [20, 15, 12, 10, 8, 5] }: { presets?: numb
         ))}
         {t.total > 0 && (
           <>
+            <Chip onClick={() => timer.adjust(-30)}>−30s</Chip>
+            <Chip onClick={() => timer.adjust(30)}>+30s</Chip>
             <Chip onClick={() => (t.running ? timer.pause() : timer.resume())}>{t.running ? '⏸' : '▶'}</Chip>
             <Chip onClick={() => timer.stop()}>✕</Chip>
           </>
         )}
       </div>
     </Card>
+  );
+}
+
+export function FloatingTimer() {
+  const t = useTimer();
+  if (t.total <= 0) return null;
+  const mm = Math.floor(t.left / 60).toString();
+  const ss = (t.left % 60).toString().padStart(2, '0');
+  const step = t.left >= 120 ? 30 : t.left >= 60 ? 10 : 5;
+  return (
+    <div
+      className={cx(
+        'fixed right-3 z-30 flex items-center gap-1 rounded-full border-2 bg-zinc-900/95 px-2 py-1 font-mono font-black tabular-nums shadow-xl backdrop-blur',
+        t.running ? 'border-emerald-400 text-emerald-300' : 'border-amber-400 text-amber-300',
+      )}
+      style={{ bottom: 'calc(76px + env(safe-area-inset-bottom))' }}
+    >
+      <button onClick={() => timer.adjust(-step)} className="px-2 py-1 text-lg text-zinc-300" aria-label="Moins">−</button>
+      <button onClick={() => (t.running ? timer.pause() : timer.resume())} className="min-w-14 py-1 text-center text-base">
+        {mm}:{ss}
+      </button>
+      <button onClick={() => timer.adjust(step)} className="px-2 py-1 text-lg text-zinc-300" aria-label="Plus">+</button>
+      <button onClick={() => timer.stop()} className="px-1.5 py-1 text-xs text-zinc-500" aria-label="Stop">✕</button>
+    </div>
   );
 }

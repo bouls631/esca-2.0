@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { format, subDays } from 'date-fns';
-import type { AppData } from '../App';
+import type { AppData, Tab } from '../App';
 import { db, FEEL_LABELS, NIVEAU_LABELS, PROFIL_LABELS, SESSION_LABELS, type Bloc, type Niveau, type Profil, type Ressenti } from '../db';
 import { Btn, Card, Chip, Tag, TimerCard, cx, useTimer } from '../components/ui';
 import { CheckInSheet } from './CheckIn';
@@ -10,12 +10,22 @@ import { rotationFor } from '../lib/cycles';
 import { analyses } from '../lib/analyse-causes';
 import { useSwipe } from '../lib/useSwipe';
 import { timer } from '../lib/timer';
+import { cotationToNiveau, secteurToProfil, suggestRoutesFor, type OblykRoute } from '../lib/routes';
 
-interface JournalTarget { seanceId?: number; blocId?: string; niveau?: Niveau; profil?: Profil }
+interface JournalTarget {
+  seanceId?: number;
+  blocId?: string;
+  niveau?: Niveau;
+  profil?: Profil;
+  relais?: number;
+  secteur?: string;
+  couleur?: string;
+  oblykId?: number;
+}
 
 const RESSENTIS: Ressenti[] = ['facile', 'moyen', 'dur'];
 
-export default function Seance({ data, now }: { data: AppData; now: Date }) {
+export default function Seance({ data, now, go }: { data: AppData; now: Date; go?: (t: Tab) => void }) {
   const key = format(now, 'yyyy-MM-dd');
   const seance = data.seances.filter((s) => s.date === key).sort((a, b) => b.createdAt - a.createdAt)[0];
   const ck = data.checkins.filter((c) => c.date === key).sort((a, b) => b.createdAt - a.createdAt)[0];
@@ -106,10 +116,22 @@ export default function Seance({ data, now }: { data: AppData; now: Date }) {
             <div className="space-y-2">
               {seance.blocs.map((b) => {
                 const grimpable = b.niveau !== undefined;
+                const suggested = grimpable ? suggestRoutesFor(b.niveau!, focus) : [];
                 return (
                   <BlocCard
                     key={b.id}
                     bloc={b}
+                    suggested={suggested}
+                    onPickRoute={(r) => setJournal({
+                      seanceId: seance.id,
+                      blocId: b.id,
+                      niveau: cotationToNiveau(r.cotation),
+                      profil: secteurToProfil(r.secteur),
+                      relais: r.relais ?? undefined,
+                      secteur: r.secteur ?? undefined,
+                      couleur: r.couleur ?? undefined,
+                      oblykId: r.id,
+                    })}
                     onFait={() => (grimpable
                       ? setJournal({ seanceId: seance.id, blocId: b.id, niveau: b.niveau, profil: focus ?? 'dalle' })
                       : void toggleDone(b.id))}
@@ -132,7 +154,7 @@ export default function Seance({ data, now }: { data: AppData; now: Date }) {
                 {voiesToday.slice().sort((a, b) => a.date - b.date).map((v) => (
                   <p key={v.id} className="font-mono text-xs text-zinc-300">
                     <span className={v.chute === 'top' ? 'text-emerald-400' : 'text-zinc-400'}>
-                      {v.essai}× {NIVEAU_LABELS[v.niveau]} · {PROFIL_LABELS[v.profil]} · {v.chute === 'top' ? 'TOP ✓' : `${v.chute} — ${v.cause ?? ''}`}
+                      {v.essai}× {NIVEAU_LABELS[v.niveau]}{v.relais ? ` (Relais ${v.relais})` : ''} · {PROFIL_LABELS[v.profil]} · {v.chute === 'top' ? 'TOP ✓' : `${v.chute} — ${v.cause ?? ''}`}{v.note ? ` · "${v.note}"` : ''}
                     </span>
                   </p>
                 ))}
@@ -152,7 +174,10 @@ export default function Seance({ data, now }: { data: AppData; now: Date }) {
           )}
 
           {seance.blocs.some((b) => b.niveau !== undefined) && (
-            <Btn size="lg" variant="ghost" onClick={() => setJournal({ seanceId: seance.id, profil: focus ?? 'dalle' })}>+ Noter une voie</Btn>
+            <div className="grid grid-cols-2 gap-2">
+              <Btn size="lg" variant="ghost" onClick={() => setJournal({ seanceId: seance.id, profil: focus ?? 'dalle' })}>+ Noter une voie</Btn>
+              {go && <Btn size="lg" variant="ghost" onClick={() => go('salle')}>Roue RAPPEL</Btn>}
+            </div>
           )}
         </>
       )}
@@ -171,14 +196,20 @@ export default function Seance({ data, now }: { data: AppData; now: Date }) {
         blocId={journal?.blocId}
         defaultNiveau={journal?.niveau}
         defaultProfil={journal?.profil}
+        defaultRelais={journal?.relais}
+        defaultSecteur={journal?.secteur}
+        defaultCouleur={journal?.couleur}
+        defaultOblykId={journal?.oblykId}
       />
     </div>
   );
 }
 
 /** Carte de bloc : swipe droite = Fait, gauche = Reporté, bas = Modifié (boutons en secours). */
-function BlocCard({ bloc, onFait, onRepor, onModifie, onRessenti, canLog }: {
+function BlocCard({ bloc, suggested, onPickRoute, onFait, onRepor, onModifie, onRessenti, canLog }: {
   bloc: Bloc;
+  suggested: OblykRoute[];
+  onPickRoute: (r: OblykRoute) => void;
   onFait: () => void;
   onRepor: () => void;
   onModifie: () => void;
@@ -204,6 +235,21 @@ function BlocCard({ bloc, onFait, onRepor, onModifie, onRessenti, canLog }: {
         </div>
         <p className="mt-1 font-mono text-xs leading-relaxed text-zinc-400">{bloc.detail}</p>
       </div>
+      {suggested.length > 0 && (
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          <span className="font-mono text-[10px] uppercase text-zinc-500">RAPPEL :</span>
+          {suggested.map((r) => (
+            <button
+              key={r.id}
+              onClick={() => onPickRoute(r)}
+              className="inline-flex items-center gap-1 rounded-lg border border-zinc-800 bg-zinc-950 px-2 py-1 font-mono text-[11px] text-zinc-300 hover:border-emerald-500"
+            >
+              <span className="h-2.5 w-2.5 rounded-full border border-white/30" style={{ background: r.couleur ?? '#999' }} />
+              <span>R{r.relais} · {r.cotation}</span>
+            </button>
+          ))}
+        </div>
+      )}
       <div className="mt-3 flex flex-wrap gap-2">
         {bloc.restMin ? (
           <Chip onClick={() => timer.start(bloc.restMin!)} className={t.running ? 'text-amber-300' : undefined}>Repos {bloc.restMin}′</Chip>
