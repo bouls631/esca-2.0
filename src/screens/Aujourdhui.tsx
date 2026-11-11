@@ -8,7 +8,7 @@ import { rotationFor } from '../lib/cycles';
 import { evaluateSurmenage } from '../lib/surmenage';
 import { ready7a } from '../lib/readiness';
 import { lastFailCause, microWorkout } from '../lib/analyse-causes';
-import { coachLevelVerdict, cycleInfo, fingerBestByHold, fingerSpec, homeSpec, HOLD_LABELS, levelConfig, profileSuccessStats } from '../lib/plan';
+import { coachLevelVerdict, cycleInfo, fingerBestByHold, fingerSpec, homeSpec, HOLD_LABELS, levelConfig, mobiliteSpec, profileSuccessStats, renfoSpec } from '../lib/plan';
 import { ReadinessSheet } from './ReadinessSheet';
 
 export default function Aujourdhui({ data, now, go }: { data: AppData; now: Date; go: (t: Tab) => void }) {
@@ -30,6 +30,8 @@ export default function Aujourdhui({ data, now, go }: { data: AppData; now: Date
   const cyc = cycleInfo(now, data.profile.cycleStart, data.profile.weekOffset);
   const fSpec = fingerSpec(cfg, cyc);
   const hSpec = homeSpec(cfg, cyc);
+  const mSpec = mobiliteSpec(cfg);
+  const rSpec = renfoSpec(cfg, cyc);
   const fBest = fingerBestByHold(data.finger);
   const pStats = profileSuccessStats(data.voies);
   const cVerdict = coachLevelVerdict(data.voies, cfg.grade, now);
@@ -68,8 +70,8 @@ export default function Aujourdhui({ data, now, go }: { data: AppData; now: Date
     dayN === 4 ? 'Jeudi — Volume / Endurance' :
     dayN === 5 ? 'Vendredi — Force maison (anneaux)' :
     dayN === 0 ? 'Dimanche — Readiness (5 min)' :
-    dayN === 3 ? 'Mercredi — Récupération · micro-workout' :
-    'Samedi — Endurance douce & mobilité';
+    dayN === 3 ? 'Mercredi — Mobilité' :
+    'Samedi — Renforcement';
 
   return (
     <div className="space-y-3">
@@ -119,7 +121,7 @@ export default function Aujourdhui({ data, now, go }: { data: AppData; now: Date
         </Card>
       )}
 
-      {(dayN === 3 || dayN === 5) && (
+      {dayN === 5 && (
         <Card>
           <p className="font-mono text-sm font-bold uppercase text-zinc-200">Micro-workout maison (10 min)</p>
           {fail?.cause ? (
@@ -188,6 +190,43 @@ export default function Aujourdhui({ data, now, go }: { data: AppData; now: Date
             {hSpec.items.map((it) => (
               <p key={it.titre} className="font-mono text-xs text-zinc-400">
                 • <span className="font-bold text-zinc-200">{it.titre}</span> : {it.sets} × {it.reps} (repos {Math.floor(it.rest / 60)}:{String(it.rest % 60).padStart(2, '0')})
+              </p>
+            ))}
+          </div>
+        </SeqTimerCard>
+      )}
+
+      {dayN === 3 && (
+        <SeqTimerCard
+          title="Chrono · Mobilité (mercredi)"
+          badge={`Niveau ${cfg.grade}`}
+          seq={mSpec.seq}
+          meta={[
+            { label: 'Durée', val: `~${mSpec.minutes} min` },
+            { label: 'Tenue', val: `${mSpec.hold}s` },
+            { label: 'Tours', val: String(mSpec.rounds) },
+          ]}
+        >
+          <div className="mt-2 space-y-1">
+            {mSpec.items.map((it) => (
+              <p key={it.titre} className="font-mono text-xs text-zinc-400">
+                • <span className="font-bold text-zinc-200">{it.titre}</span> : {it.detail}
+              </p>
+            ))}
+          </div>
+        </SeqTimerCard>
+      )}
+
+      {dayN === 6 && (
+        <SeqTimerCard
+          title="Chrono · Renforcement (samedi)"
+          badge={`Niveau ${cfg.grade} · ${rSpec.sets} séries`}
+          seq={rSpec.seq}
+        >
+          <div className="mt-2 space-y-1">
+            {rSpec.items.map((it) => (
+              <p key={it.titre} className="font-mono text-xs text-zinc-400">
+                • <span className="font-bold text-zinc-200">{it.titre}</span> : {it.reps}
               </p>
             ))}
           </div>

@@ -5,7 +5,7 @@ import { rotationFor } from '../src/lib/cycles';
 import { readinessAssessment, ready7a } from '../src/lib/readiness';
 import { analyses, gauges, microWorkout } from '../src/lib/analyse-causes';
 import { cotationToNiveau, filterRoutes, RAPPEL_ROUTES, relaisToProfil, suggestRoutesFor, uniqueGrades } from '../src/lib/routes';
-import { coachLevelVerdict, cycleInfo, fingerBestByHold, fingerSpec, homeSpec, levelConfig, profileSuccessStats } from '../src/lib/plan';
+import { coachLevelVerdict, cycleInfo, fingerBestByHold, fingerSpec, homeSpec, levelConfig, mobiliteSpec, profileSuccessStats, renfoSpec } from '../src/lib/plan';
 import type { Checkin, ReadinessTest, Seance, Voie } from '../src/db';
 
 const MIN = 60_000;
@@ -246,6 +246,23 @@ describe('intégration Oblyk RAPPEL & cycle 12 semaines (Escalade Pro)', () => {
     const h = homeSpec(levelConfig(5), c4);
     expect(h.seq.some((p) => p.k === 'wait')).toBe(true);
     expect(fingerBestByHold([{ date: '2026-06-01', hold: '15mm', kg: 10, sets: 5, work: 7, week: 1, createdAt: 1 }])['15mm']).toBe(10);
+  });
+
+  it('mercredi mobilité & samedi renforcement : adaptés au niveau et à la décharge', () => {
+    const debutant = mobiliteSpec(levelConfig(1));
+    const avance = mobiliteSpec(levelConfig(9));
+    expect(debutant.tier).toBe('debutant');
+    expect(avance.hold).toBeGreaterThan(debutant.hold);
+    expect(avance.items.length).toBeGreaterThan(debutant.items.length);
+    expect(mobiliteSpec(levelConfig(5)).minutes).toBe(15);
+
+    const s2 = cycleInfo(now, '2026-06-01', 0); // S2
+    const s4 = cycleInfo(now, '2026-05-19', 0); // S4 décharge
+    expect(renfoSpec(levelConfig(5), s2).sets).toBe(3);
+    expect(renfoSpec(levelConfig(9), s2).sets).toBe(4);
+    expect(renfoSpec(levelConfig(1), s2).sets).toBe(2);
+    expect(renfoSpec(levelConfig(5), s4).sets).toBe(2);
+    expect(renfoSpec(levelConfig(5), s2).seq.filter((p) => p.k === 'wait').length).toBe(15);
   });
 
   it('désigne le profil faible et le verdict coach sur 21 jours', () => {

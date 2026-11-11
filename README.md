@@ -47,7 +47,7 @@ src/
     timer.ts             Timer de récupération (vibration + bip, survit aux onglets)
     useSwipe.ts          Swipe droite=Fait, gauche=Reporté, bas=Modifié
   screens/
-    Aujourdhui.tsx       selon le jour : check-in / micro-workout / readiness / porte 7a
+    Aujourdhui.tsx       selon le jour : check-in / mobilité (mer) / micro-workout (ven) / renforcement (sam) / readiness / porte 7a
     Seance.tsx           check-in 30 s + plan swipeable + journal de voie + timer
     CheckIn.tsx          check-in quadruple (lieu/énergie/douleurs/ressenti/intention)
     JournalVoie.tsx      niveau + point de chute + cause (20 s)
@@ -86,10 +86,14 @@ S1 dévers/dalle · S2 toit/arête · S3 dièdre/dévers · S4 libre ou récupé
 
 ### Journal de chute → analyse (fenêtre 14 jours)
 - 3× « Fin » → déficit endurance → jeudi +1 voie d'enchaînement.
-- 2× « Milieu » sur dévers/toit → déficit lock-off → micro-workout poutre mercredi.
+- 2× « Milieu » sur dévers/toit → déficit lock-off → micro-workout poutre vendredi.
 - 2× cause « Mental » → respiration 4-7-8 + visualisation avant chaque séance.
 
-Micro-workout maison (10 min, mercredi/vendredi) prescrit selon la dernière cause de chute : force → lock-offs + anneaux ; souffle → corde à sauter ; technique → silent feet ; mental → 4-7-8 + visualisation.
+### Mercredi mobilité & samedi renforcement
+- **Mercredi** — chrono mobilité (hanches, épaules, ischios, avant-bras, colonne ; + rotation thoracique dès le niveau 6b+). Tenue 30/40/50 s selon le niveau, 2 tours, environ 9 à 18 min.
+- **Samedi** — chrono renforcement (fentes bulgares, pompes, gainage latéral, Y-T-W, poignets), sans anneaux. Séries 2 à 4 selon le niveau, une série de moins en semaine de décharge (S4/S8/S12).
+
+Micro-workout maison (10 min, vendredi) prescrit selon la dernière cause de chute : force → lock-offs + anneaux ; souffle → corde à sauter ; technique → silent feet ; mental → 4-7-8 + visualisation.
 
 ## Scénarios concrets
 

@@ -68,7 +68,7 @@ export function analyses(voies: Voie[]): Prescription[] {
     out.push({
       deficit: 'lockoff',
       titre: 'Déficit lock-off (dévers/toit)',
-      detail: 'Chutes en milieu de voie sur dévers/toit. Mercredi : micro-workout force sur poutre (3×5 lock-offs 10s + 3×8 tractions anneaux).',
+      detail: 'Chutes en milieu de voie sur dévers/toit. Vendredi : micro-workout force sur poutre (3×5 lock-offs 10s + 3×8 tractions anneaux).',
     });
   }
   // Mental récurrent → respiration / visualisation

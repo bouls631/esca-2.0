@@ -116,6 +116,62 @@ export function homeSpec(cfg: LevelConfig, cyc: CycleInfo) {
   return { sets, items, seq };
 }
 
+type Tier = 'debutant' | 'inter' | 'avance';
+const tierOf = (cfg: LevelConfig): Tier => (cfg.d <= -2 ? 'debutant' : cfg.d >= 2 ? 'avance' : 'inter');
+
+const MOB_HOLD: Record<Tier, number> = { debutant: 30, inter: 40, avance: 50 };
+const MOB_ROUNDS = 2;
+const MOB_ITEMS = [
+  { titre: 'Hanches', detail: 'couch stretch, genou au sol, bassin rentré', sides: ['gauche', 'droite'] },
+  { titre: 'Épaules', detail: 'sleeper stretch, coude à 90°, pousse doucement', sides: ['gauche', 'droite'] },
+  { titre: 'Ischios & mollets', detail: 'fente basse, talon au sol, dos plat', sides: ['gauche', 'droite'] },
+  { titre: 'Avant-bras', detail: 'fléchisseurs puis extenseurs, bras tendu', sides: ['gauche', 'droite'] },
+  { titre: 'Colonne', detail: 'chat-vache lent, une respiration par mouvement', sides: [''] },
+];
+const MOB_THORACIC = { titre: 'Rotation thoracique', detail: 'allongé sur le côté, genoux pliés, bras ouvert', sides: ['gauche', 'droite'] };
+
+/** Mobilité du mercredi : tenue et nombre d'exos selon le niveau (débutant → avancé). */
+export function mobiliteSpec(cfg: LevelConfig) {
+  const tier = tierOf(cfg);
+  const hold = MOB_HOLD[tier];
+  const items = tier === 'debutant' ? MOB_ITEMS : [...MOB_ITEMS, MOB_THORACIC];
+  const seq: SeqStep[] = [];
+  for (let r = 1; r <= MOB_ROUNDS; r++) {
+    for (const it of items) {
+      for (const side of it.sides) {
+        seq.push({ k: 'count', d: hold, t: `${it.titre}${side ? ` (${side})` : ''} — tour ${r}/${MOB_ROUNDS}`, tone: 'lime' });
+      }
+    }
+  }
+  const total = seq.reduce((s, x) => s + (x.d ?? 0), 0);
+  return { tier, hold, rounds: MOB_ROUNDS, items, seq, minutes: Math.round(total / 60) };
+}
+
+const RENFO_ITEMS: { titre: string; reps: Record<Tier, string>; rest: number }[] = [
+  { titre: 'Fentes bulgares', reps: { debutant: '8 par jambe', inter: '10 par jambe', avance: '12 par jambe, pied arrière surélevé' }, rest: 90 },
+  { titre: 'Pompes', reps: { debutant: '10 sur les genoux', inter: '12 classiques', avance: '10 pieds surélevés' }, rest: 75 },
+  { titre: 'Gainage latéral', reps: { debutant: '20 s par côté', inter: '30 s par côté', avance: '40 s par côté' }, rest: 60 },
+  { titre: 'Y-T-W épaules', reps: { debutant: '8 de chaque lettre', inter: '8 de chaque lettre, lent', avance: '10 de chaque lettre, lent' }, rest: 60 },
+  { titre: 'Poignets', reps: { debutant: '15 extensions, bouteille 1 L', inter: '15 extensions, bouteille 1,5 L', avance: '15 extensions + flexions, haltère 2 kg' }, rest: 60 },
+];
+
+/** Renforcement du samedi (hors anneaux, déjà couverts le vendredi) : séries et charge selon le niveau, décharge en S4/S8/S12. */
+export function renfoSpec(cfg: LevelConfig, cyc: CycleInfo) {
+  const tier = tierOf(cfg);
+  const base = cfg.d >= 2 ? 4 : cfg.d >= 0 ? 3 : 2;
+  const sets = cyc.deload ? Math.max(2, base - 1) : base;
+  const seq: SeqStep[] = [];
+  RENFO_ITEMS.forEach((it, idx) => {
+    for (let s = 1; s <= sets; s++) {
+      seq.push({ k: 'wait', t: `${it.titre} (${it.reps[tier]}) — série ${s}/${sets}`, tone: 'lime' });
+      if (s < sets || idx < RENFO_ITEMS.length - 1) {
+        seq.push({ k: 'count', d: it.rest, t: `Repos — ${it.titre.toLowerCase()}`, tone: 'amber' });
+      }
+    }
+  });
+  return { tier, sets, items: RENFO_ITEMS.map((it) => ({ titre: it.titre, reps: it.reps[tier] })), seq };
+}
+
 export function fingerBestByHold(sessions: FingerSession[]): Record<string, number> {
   const best: Record<string, number> = {};
   for (const s of sessions) {
