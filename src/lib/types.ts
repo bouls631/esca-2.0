@@ -90,3 +90,8 @@ export const AXIS_LABELS: Record<Axis, string> = {
 export const NIVEAUX_ORDER: Niveau[] = ['5+', '6a', '6b', '6b+', '6c', '7a'];
 export type Objectif = '6a' | '6b' | '6c' | '7a';
 export const OBJECTIFS: Objectif[] = ['6a', '6b', '6c', '7a'];
+export type Pratique = 'voie' | 'bloc';
+export const PRATIQUE_LABELS: Record<Pratique, string> = { voie: 'Voie', bloc: 'Bloc' };
+/** Couleurs de bloc du plus facile au plus dur. */
+export type CouleurBloc = 'jaune' | 'orange' | 'vert' | 'bleu' | 'rouge' | 'noir' | 'rose';
+export const COULEURS_BLOC: CouleurBloc[] = ['jaune', 'orange', 'vert', 'bleu', 'rouge', 'noir', 'rose'];

@@ -1,66 +1,67 @@
-# AGENTS.md — Guide pour la prochaine session agent (OpenCode)
+# AGENTS.md
 
-## Qu'est-ce que ce repo
-
-**Coach Voie** — PWA coach préventif/adaptatif pour un grimpeur 6a-6b → 7a (voie, 2 séances/sem).
-Calendrier fixe : **mardi = intensité/voie max**, **jeudi = volume/endurance**.
-Matos : club = mur 36 relais (max 5-6 voies, max 2× 6c) ; maison = poutre verticale, anneaux, corde à sauter, PAS de campus.
+Coach Voie : PWA française (React 19 + Vite 7 + TypeScript strict + Dexie), coach préventif pour un grimpeur 6a → 7a. Données 100 % locales (IndexedDB), pas de backend.
 
 ## Commandes
 
-```bash
-npm install       # installe (warning allow-scripts esbuild normal ; le build se fait quand même)
-npm run dev       # localhost:5173
-npm test          # 28 tests vitest (logique métier pure dans src/lib/)
-npm run build     # tsc --noEmit && vite build (strict, zéro erreur exigée)
-npm run icons     # regénère public/icons/*.png si un jour on change le logo (script sans dépendance)
-```
+- `npm install`, `npm run dev` (localhost:5173)
+- `npm test` = `vitest run`. Un seul fichier de tests : `tests/lib.test.ts`. Filtrer : `npx vitest run -t "nom du test"`.
+- `npm run build` = `tsc --noEmit && vite build`. C'est le seul typecheck du repo.
+- Avant de pousser : lancer `npm test` puis `npm run build`. Le CI (`.github/workflows/pages.yml`) lance `npx vitest run` puis `npx vite build` sans `tsc`, donc un type cassé peut passer le CI.
+- `npm run fetch-routes` réécrit `src/data/routes.json` et `public/routes.json` depuis l'API Oblyk (réseau requis). Ne pas éditer ces fichiers à la main.
+- `npm run icons` régénère `public/icons/*.png`.
 
-## Déploiement (fragile — à connaître absolument)
+## Déploiement
 
-- **Règle permanente : après toute modification, commit + `git push` sur `main`** (déploiement auto). Ne pas laisser
-  de travail non poussé « pour plus tard » : l'utilisateur teste sur son téléphone via GitHub Pages.
-- Déploiement = **GitHub Pages via le workflow `.github/workflows/pages.yml`** (build + 28 tests + deploy-pages).
-- ⚠ **Settings → Pages → Source doit rester "GitHub Actions"**. Si l'utilisateur repasse en "Deploy from a branch",
-  GitHub sert à nouveau le repo brut (index.html source non transpilé, page blanche, pas de SW).
-  Symptôme : https://bouls631.github.io/esca-2.0/ sert `<script src="/src/main.tsx">`.
-- En CI, `vite.base` devient automatiquement `/esca-2.0/` grâce à `process.env.GITHUB_ACTIONS` dans vite.config.ts.
-  Ne pas mettre le base en dur ; en local il est déjà `/`.
-- Tester après deploy : `GET /esca-2.0/manifest.webmanifest` doit répondre 200 et `GET /esca-2.0/assets/index-*.js` aussi.
+- Chaque push sur `main` déploie GitHub Pages (URL `https://bouls631.github.io/esca-2.0/`). Le repo est poussé directement sur `main` ; ne pas garder de travail non poussé.
+- Settings → Pages → Source doit rester **GitHub Actions**. En mode « Deploy from a branch », Pages sert le `index.html` source (page blanche).
+- `vite.config.ts` met `base = '/esca-2.0/'` seulement si `GITHUB_ACTIONS` est défini ; en local la base est `/`. Ne pas la figer en dur.
+- Après déploiement, `/esca-2.0/manifest.webmanifest` et `/esca-2.0/assets/index-*.js` doivent répondre 200.
+- Windows : `git push` écrit sur stderr, PowerShell affiche alors `NativeCommandError` alors que le push a réussi. Vérifier la ligne `main -> main`, pas le code de sortie.
 
-## Structure & règles métier (ne pas bifurquer)
+## Architecture
 
-- `src/lib/types.ts` = source de vérité des unions + libellés FR (UI n'invente pas de libellés).
-- Logique métier **100 % pure** dans `src/lib/` (surmenage, readiness, generator, analyse-causes, cycles) → tests dans `tests/lib.test.ts`. Pas d'algo caché dans les composants.
-- Données : Dexie (`src/db.ts`), tables `profile / checkins / seances / voies / readiness`. Tout local, export JSON dans Stats.
-- Séance "mardi intense" = essais 6c/7a loggés → calibre le volume du jeudi (7 voies, pas de 6c).
-- Porte 7a : 3 tops 6c le mardi en 4 semaines + readiness stable + pas de blocage 14 j.
-- Readiness : baisse >20 % vs moyenne des 4 tests précédents → intensité −20 %.
-- Override « J'assume le risque » : toujours possible, **majudra** noté (`checkin.override: true`, marqué ⚠ dans Stats).
+- `src/lib/` : logique métier pure, testée. Les composants ne doivent pas contenir d'algorithme.
+  - `generator.ts` : génère la séance du jour à partir d'un `GenCtx` (mardi intensité, jeudi volume, maison, repos forcé).
+  - `surmenage.ts`, `readiness.ts`, `analyse-causes.ts`, `cycles.ts`, `plan.ts`, `routes.ts`.
+- `src/screens/` : écrans. `CheckIn.tsx` assemble le `GenCtx` et écrit checkin + séance.
+- `src/App.tsx` : charge toutes les tables via `useLiveQuery`, et définit `AppData` (importé en `import type` par les écrans).
+- `src/db.ts` : schéma Dexie (v1, v2), types d'entités, export/import JSON.
+- `src/lib/types.ts` : unions et libellés FR. Les libellés affichés viennent d'ici.
 
-## Pièges découverts (à ne PAS re-casser)
+## Deux échelles de cotation (ne pas les confondre)
 
-1. **Sentinelle -Infinity** : latest-activity dans surmenage.ts utilise `Math.max` avec `-Infinity`. `Math.max(Infinity, x)` renverrait Infinity (bug existant pendant 1 session).
-2. **dexie-react-hooks v1.1.7** : appeler `useLiveQuery<AppData, null>(querier, [], null)` (2 generics sinon union `{} | undefined` qui ne narrow pas).
-3. **TS strict + `verbatimModuleSyntax`** : imports de types obligatoirement `import type`. `AppData` vit dans `App.tsx` (import type-only circulaire OK).
-4. **passé d'essais dans tests** : le helper `voie(..., seanceId)` avale un `undefined` explicite (default s'applique) → passer un vrai id de fixture `seance()` (= objet avec `id: ++sid`).
-5. **JSX et `>`** : jamais `>20%` en texte JSX brut → TS1382. Écrire `≥20%` ou `{'>'}`.
-6. ** Αν ανθρώπος write/overwrite accidentels** : plusieurs write ont écrasé des fichiers entiers (analyse-causes.ts). Après un doute, relire le fichier avant de continuer.
-7. restDelta : il faut **≥3 voies par séance d'intensité** (2 intervalles) pour déclencher l'alerte récupération — sinon silent (by design).
-8. Règle douleurs = **3 derniers check-ins** avec douleur (pas 3 jours calendaires : le check-in n'existe que mardi/jeudi) — documenté dans README.
-9. Testé pour Windows : `git push` écrit son progrès sur stderr → PowerShell affiche "NativeCommandError" alors que le push a réussi (`.. .. main -> main`). Vérifier le ref, pas le code de sortie.
+- `Niveau` (`types.ts`) : `'5+' | '6a' | '6b' | '6b+' | '6c' | '7a'`, utilisé par les blocs, les voies loggées et l'UI. Tout ce qui est sous 6a est `'5+'` (`cotationToNiveau` dans `routes.ts`).
+- `PLAN_GRADES` (`plan.ts`) : `'4a'…'8a'`, utilisé par le curseur `profile.level` (1..9, 5 = 6c) et les cibles de volume.
+- `Objectif` (`types.ts`) : `'6a' | '6b' | '6c' | '7a'`, stocké dans `profile.objectif` (défaut 6c). La fonction `grade(obj, d)` de `generator.ts` calcule les cotations à `d` crans de l'objectif. L'échauffement est à −3 crans (6c → 5c), le projet à 0, la technique à −1.
+- Le curseur de niveau et l'objectif sont indépendants. Le curseur pilote doigts, mobilité et renforcement.
+- Règles encore figées sur le 6c : alerte `fail6c`, porte 7a (tops 6c le mardi), `lastMardiIntense`. Elles ne suivent pas `objectif`.
 
-## Backlog « on verra avec le temps »
+## Règles métier (ne pas bifurquer sans demande)
 
-- Import JSON (rétro-complément de l'export) — pour changer de téléphone.
-- Mini check douleur quotidien (1 champ) pour exactifier la règle « 3 jours de suite ».
-- Guided warmup : chaînage auto des blocs avec timer prérempli du restMin du bloc suivant.
-- Notifications locales optionnelles mardi/jeudi (refusées en V1 du user).
-- Catalogue des 36 relais si l'utilisateur y tient un jour (refusé en V1 : suggestions par profil seulement).
-- Mode bêta : basculer mardi/jeudi (refusé en V1 : calendrier fixe assumé).
+- Calendrier fixe : mardi = intensité, jeudi = volume. Hors calendrier, le check-in force le type.
+- Surmenage (14 j glissants) : douleurs sur les 3 derniers check-ins avec douleur → bloqué (`pains3`) ; récupération entre voies en hausse (`restDelta`) → bloqué ; 2 échecs 6c consécutifs (`fail6c`) ; énergie 1 et séance < 48 h → repos actif (`epuise48`). Source : `surmenage.ts`.
+- « J'assume le risque » est toujours possible, mais le check-in garde `override: true` et Stats l'affiche avec ⚠.
+- Readiness : baisse > 20 % vs moyenne des 4 tests précédents → intensité −20 %.
+- Porte 7a : 3 tops 6c le mardi en 4 semaines + readiness stable + pas de blocage.
+- Mardi intense (essais 6c/7a loggés) → jeudi limité à 7 voies, sans 6c.
+- Pratique voie/bloc (check-in, club uniquement) : `Checkin.pratique` (défaut voie). Bloc = couleurs `COULEURS_BLOC` (jaune → rose), objectif `profile.objectifBloc` (défaut rouge), bornées au jaune/rose, sans `niveau` (donc pas de journal voie). `fail6c` ne s'applique qu'aux voies.
+- `restDelta` ignore les séances d'intensité avec moins de 3 voies (`surmenage.ts`, « il faut ≥2 intervalles »).
 
-## État au 31/10/2026
+## Pièges TypeScript / React
 
-- App 100 % fonctionnelle en ligne : https://bouls631.github.io/esca-2.0/
-- Dernier commit utile : `e47229e` (fonctionnel complet) + `273e474` (re-déploiement, vide).
-- Aucune donnée utilisateur à préserver côté repo (données 100 % IndexedDB sur le téléphone).
+- `verbatimModuleSyntax` : imports de types en `import type`.
+- `dexie-react-hooks` 1.1.7 : écrire `useLiveQuery<AppData, null>(querier, [], null)`, sinon le type ne se réduit pas.
+- JSX : ne jamais écrire `>20%` en texte brut (TS1382). Utiliser `≥20%` ou `{'>'}`.
+- `noUnusedLocals` et `noUnusedParameters` sont actifs : les imports inutilisés cassent le build.
+- Dexie : ajouter un champ optionnel (ex. `profile.objectif`) ne demande pas de migration. Un nouveau champ indexé demande une nouvelle `db.version(n)`.
+- Tests : les fixtures de `voie(...)` doivent recevoir un vrai `seanceId` (un `undefined` explicite prend la valeur par défaut).
+
+## Décisions déjà refusées (ne pas re-proposer)
+
+- Notifications locales, mode bêta qui change mardi/jeudi, catalogue complet des 36 relais (suggestions par profil seulement).
+
+## Docs
+
+- `README.md` : la ligne « 23 tests » est périmée, la suite compte 33 tests.
+- Ce fichier et `README.md` décrivent les règles métier ; si une règle change, mettre à jour les deux.

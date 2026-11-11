@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie';
-import type { Bloc, Cause, Chute, Energy, Feel, Intent, Location, Niveau, Objectif, Pain, Profil, SessionType } from './lib/types';
+import type { Bloc, Cause, Chute, CouleurBloc, Energy, Feel, Intent, Location, Niveau, Objectif, Pain, Pratique, Profil, SessionType } from './lib/types';
 
 export * from './lib/types';
 
@@ -10,6 +10,7 @@ export interface Profile {
   cycleStart?: string; // 'yyyy-MM-dd' lancement du cycle de 12 semaines
   weekOffset?: number; // décalage manuel de semaine
   objectif?: Objectif; // projet visé (défaut 6c) : pilote les cotations de la séance intensité
+  objectifBloc?: CouleurBloc; // bloc visé (défaut rouge) : pilote la séance bloc
 }
 
 export interface Checkin {
@@ -22,6 +23,7 @@ export interface Checkin {
   feel: Feel; // ressenti de la DERNIÈRE séance
   intent: Intent;
   override: boolean; // "j'assume le risque" quand la séance est bloquée
+  pratique?: Pratique; // voie (défaut) ou bloc, au check-in
   createdAt: number;
 }
 

@@ -1,4 +1,5 @@
-import type { Bloc, Energy, Intent, Niveau, Objectif, Profil, SessionType } from './types';
+import type { Bloc, CouleurBloc, Energy, Intent, Niveau, Objectif, Pratique, Profil, SessionType } from './types';
+import { COULEURS_BLOC } from './types';
 import type { Checkin, Seance } from '../db';
 import { PLAN_GRADES } from './plan';
 
@@ -16,6 +17,8 @@ export interface GenCtx {
   gate7a: boolean;
   maisonSeries: number;
   objectif: Objectif;
+  pratique: Pratique;
+  objectifBloc: CouleurBloc;
 }
 
 let seq = 0;
@@ -29,6 +32,9 @@ const profilText = (p: Profil | null) => (p ? `profils : ${p}` : 'profils au cho
 export const grade = (obj: Objectif, d: number) => PLAN_GRADES[PLAN_GRADES.indexOf(obj) + d];
 /** Niveau de bloc : tout ce qui est sous 6a = « 5+ » (cf. cotationToNiveau). */
 const niveauOf = (g: string) => (g.startsWith('5') ? '5+' : g) as Niveau;
+/** Couleur de bloc à `d` crans de l'objectif, bornée au jaune et au rose. */
+export const couleurAt = (obj: CouleurBloc, d: number): CouleurBloc =>
+  COULEURS_BLOC[Math.max(0, Math.min(COULEURS_BLOC.length - 1, COULEURS_BLOC.indexOf(obj) + d))];
 
 /** Génère la séance adaptative du jour (mardi intensité / jeudi volume) ou un plan maison/repos. */
 export function generateSeance(ctx: GenCtx): { type: SessionType; note?: string; blocs: Bloc[] } {
@@ -46,6 +52,7 @@ export function generateSeance(ctx: GenCtx): { type: SessionType; note?: string;
     const why = ctx.maisonSeries === 2 ? ' — dernière séance maison dure, on allège' : ctx.maisonSeries === 4 ? ' — dernière séance maison facile, on monte' : '';
     return { type: 'volume', note: `Séance maison — poutre, anneaux, corde à sauter. ${ctx.maisonSeries} séries${why}.`, blocs: maisonPlan(ctx.maisonSeries) };
   }
+  if (ctx.pratique === 'bloc') return blocSeance(ctx);
   const T = ctx.objectif;
   const g = (d: number) => grade(T, d);
   if (ctx.type === 'intensite') {
@@ -115,6 +122,37 @@ export function generateSeance(ctx: GenCtx): { type: SessionType; note?: string;
       ? `Mardi était intense → 7 voies max, aucun ${T} en finisher. Chute sur ${g(-1)} → redescends tout de suite : voie suivante, pas de nouvel essai.`
       : `Mardi facile → 9 voies dont 1× ${T} "test fatigue" en finisher (${profilText(ctx.focus)}). Chute sur ${g(-1)} → redescends : voie suivante, pas de nouvel essai.`,
     blocs: volumeBlocs(ctx.mardiIntense, ctx.focus, T),
+  };
+}
+
+/** Séance bloc : pas de niveau sur les blocs (donc pas de journal voie), « Fait » + ressenti. */
+function blocSeance(ctx: GenCtx): { type: SessionType; note?: string; blocs: Bloc[] } {
+  const T = ctx.objectifBloc;
+  const c = (d: number) => couleurAt(T, d);
+  if (ctx.type === 'intensite' && ctx.energy > 2 && ctx.intent !== 'reporter') {
+    const essais = ctx.readinessDrop ? 1 : 2;
+    return {
+      type: 'intensite',
+      note: `Séance bloc : ${c(-3)} → ${c(-2)} → projet ${T} (${essais} essai${essais > 1 ? 's' : ''}) → ${c(-1)}.${ctx.readinessDrop ? ' 📉 Readiness en baisse → 1 essai.' : ''}`,
+      blocs: [
+        bloc(`Échauffement ${c(-3)}`, `2 blocs ${c(-3)} fluides, note mentale sur chaque pied.`, { restMin: 5 }),
+        bloc(c(-2), `2 blocs ${c(-2)} fluides, zéro échec.`, { restMin: 5 }),
+        bloc(`Projet ${T}`, `${essais} essai${essais > 1 ? 's' : ''} max sur un bloc ${T}. 15 min de repos entre essais.`, { restMin: 15 }),
+        bloc(c(-1), `2 blocs ${c(-1)}, lecture précise.`, { restMin: 8 }),
+        bloc('Retour au calme', `1 bloc ${c(-2)} fluide + étirements.`, { restMin: 0 }),
+      ],
+    };
+  }
+  const n = ctx.mardiIntense ? 6 : 8;
+  return {
+    type: 'volume',
+    note: `Séance bloc volume : ${n} blocs ${c(-2)}/${c(-1)} d'affilée${ctx.mardiIntense ? '' : ` + 1× ${T} en finisher`}.`,
+    blocs: [
+      bloc('Échauffement', `1 bloc ${c(-2)} fluide + 5 min de pied.`, { restMin: 8 }),
+      bloc('Enchaînement', `${n} blocs ${c(-2)}/${c(-1)} d'affilée (restes 8–12 min, timer).`, { restMin: 10 }),
+      ...(ctx.mardiIntense ? [] : [bloc(`Finisher ${T}`, `1 bloc ${T} "test fatigue" : tenir dans la pompe, pas de top.`, { restMin: 12 })]),
+      bloc('Retour au calme', 'Descente douce, étirements 10 min.', { restMin: 0 }),
+    ],
   };
 }
 

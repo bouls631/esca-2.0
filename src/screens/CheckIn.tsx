@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
-import { db, ENERGY_LABELS, FEEL_LABELS, INTENT_LABELS, LOCATION_LABELS, PAIN_LABELS, SESSION_LABELS, type Checkin, type Energy, type SessionType } from '../db';
+import { db, ENERGY_LABELS, FEEL_LABELS, INTENT_LABELS, LOCATION_LABELS, PAIN_LABELS, PRATIQUE_LABELS, SESSION_LABELS, type Checkin, type Energy, type Pratique, type SessionType } from '../db';
 import type { AppData } from '../App';
 import { Btn, Card, Chip } from '../components/ui';
 import { Sheet } from '../components/Sheet';
@@ -26,6 +26,7 @@ export function CheckInSheet({ open, onClose, data, now, onDone }: {
   const day = now.getDay();
   const scheduledType: SessionType | null = day === 2 ? 'intensite' : day === 4 ? 'volume' : null;
   const [location, setLocation] = useState<Location>('club');
+  const [pratique, setPratique] = useState<Pratique>('voie');
   const [energy, setEnergy] = useState<Energy>(3);
   const [pains, setPains] = useState<Pain[]>(['aucune']);
   const [feel, setFeel] = useState<(typeof FEELS)[number]>('moyen');
@@ -64,11 +65,13 @@ export function CheckInSheet({ open, onClose, data, now, onDone }: {
     const gen = generateSeance({
       type, location: loc, energy, intent,
       readinessDrop: ra.drop,
-      fail6c: fail6c && type === 'intensite',
+      fail6c: fail6c && type === 'intensite' && pratique === 'voie',
       mardiIntense: type === 'volume' && lastMardiIntense(data, now),
       focus, focusAutre, liberation: rotation.liberation, gate7a: gate,
       maisonSeries: maisonSeriesFor(data.seances, data.checkins),
       objectif: data.profile.objectif ?? '6c',
+      pratique,
+      objectifBloc: data.profile.objectifBloc ?? 'rouge',
     });
     const ck: Checkin = {
       date: key,
@@ -79,6 +82,7 @@ export function CheckInSheet({ open, onClose, data, now, onDone }: {
       feel,
       intent: loc === 'repos_force' ? 'alleger' : intent,
       override: overridden,
+      pratique,
       createdAt: now.getTime(),
     };
     await db.transaction('rw', db.checkins, db.seances, async () => {
@@ -139,6 +143,17 @@ export function CheckInSheet({ open, onClose, data, now, onDone }: {
             ))}
           </div>
         </div>
+
+        {location === 'club' && (
+          <div>
+            <p className="mb-1.5 font-mono text-xs uppercase tracking-widest text-zinc-500">Pratique</p>
+            <div className="flex flex-wrap gap-2">
+              {(Object.entries(PRATIQUE_LABELS) as [Pratique, string][]).map(([k, lbl]) => (
+                <Chip key={k} selected={pratique === k} onClick={() => setPratique(k)}>{lbl}</Chip>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div>
           <p className="mb-1.5 font-mono text-xs uppercase tracking-widest text-zinc-500">Énergie</p>

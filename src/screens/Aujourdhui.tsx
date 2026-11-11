@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
 import type { AppData, Tab } from '../App';
-import { db, CAUSE_LABELS, OBJECTIFS, PROFIL_LABELS, type Objectif } from '../db';
+import { db, CAUSE_LABELS, COULEURS_BLOC, OBJECTIFS, PROFIL_LABELS, type CouleurBloc, type Objectif } from '../db';
 import { Btn, Card, Chip, Tag, TimerCard } from '../components/ui';
 import { SeqTimerCard } from '../components/SeqTimerCard';
 import { rotationFor } from '../lib/cycles';
@@ -29,6 +29,7 @@ export default function Aujourdhui({ data, now, go }: { data: AppData; now: Date
 
   const cfg = levelConfig(data.profile.level ?? 5);
   const objectif: Objectif = data.profile.objectif ?? '6c';
+  const objectifBloc: CouleurBloc = data.profile.objectifBloc ?? 'rouge';
   const cyc = cycleInfo(now, data.profile.cycleStart, data.profile.weekOffset);
   const fSpec = fingerSpec(cfg, cyc);
   const hSpec = homeSpec(cfg, cyc);
@@ -45,6 +46,10 @@ export default function Aujourdhui({ data, now, go }: { data: AppData; now: Date
 
   async function setObjectif(o: Objectif) {
     await db.profile.put({ ...data.profile, id: 'me', objectif: o });
+  }
+
+  async function setObjectifBloc(c: CouleurBloc) {
+    await db.profile.put({ ...data.profile, id: 'me', objectifBloc: c });
   }
 
   async function nudgeWeek(delta: number) {
@@ -279,6 +284,13 @@ export default function Aujourdhui({ data, now, go }: { data: AppData; now: Date
         <p className="mt-1 font-mono text-[11px] text-zinc-500">
           Intensité : échauffement {grade(objectif, -3)} → projet {objectif} (2 essais ×2) → technique {grade(objectif, -1)}.
         </p>
+
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <span className="font-mono text-xs text-zinc-400">Objectif bloc :</span>
+          {COULEURS_BLOC.map((c) => (
+            <Chip key={c} selected={objectifBloc === c} onClick={() => void setObjectifBloc(c)} className="px-2.5 py-1 text-xs">{c}</Chip>
+          ))}
+        </div>
 
         <div className="mt-3 flex items-center gap-2">
           <Chip onClick={() => void setLevel(cfg.level - 1)}>−</Chip>

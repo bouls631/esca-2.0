@@ -113,7 +113,20 @@ describe('générateur de séances', () => {
   const ctx = (over: Partial<Parameters<typeof generateSeance>[0]> = {}) => ({
     type: 'intensite' as const, location: 'club' as const, energy: 3 as const, intent: 'standard' as const,
     readinessDrop: false, fail6c: false, mardiIntense: false, focus: 'devers' as const,
-    focusAutre: 'dalle' as const, liberation: false, gate7a: false, maisonSeries: 3, objectif: '6c' as const, ...over,
+    focusAutre: 'dalle' as const, liberation: false, gate7a: false, maisonSeries: 3, objectif: '6c' as const,
+    pratique: 'voie' as const, objectifBloc: 'rouge' as const, ...over,
+  });
+
+  it('bloc : séance intensité sans niveau de voie, projet sur la couleur objectif', () => {
+    const g = generateSeance(ctx({ pratique: 'bloc', objectifBloc: 'bleu' }));
+    expect(g.blocs.every((b) => b.niveau === undefined)).toBe(true);
+    expect(g.blocs.some((b) => b.titre === 'Projet bleu')).toBe(true);
+    expect(g.blocs[0].titre).toBe('Échauffement jaune');
+  });
+  it('bloc : objectif jaune → plus de couleur sous jaune, jamais undefined', () => {
+    const g = generateSeance(ctx({ pratique: 'bloc', objectifBloc: 'jaune' }));
+    expect(g.blocs.map((b) => `${b.titre} ${b.detail}`).join(' ')).not.toContain('undefined');
+    expect(g.blocs[0].titre).toBe('Échauffement jaune');
   });
 
   it('mardi fort + porte 7a + énergie 4 → projet 7a', () => {
