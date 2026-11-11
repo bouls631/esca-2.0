@@ -88,3 +88,5 @@ export const AXIS_LABELS: Record<Axis, string> = {
   mental: 'Mental',
 };
 export const NIVEAUX_ORDER: Niveau[] = ['5+', '6a', '6b', '6b+', '6c', '7a'];
+export type Objectif = '6a' | '6b' | '6c' | '7a';
+export const OBJECTIFS: Objectif[] = ['6a', '6b', '6c', '7a'];

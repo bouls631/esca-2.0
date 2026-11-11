@@ -113,17 +113,22 @@ describe('générateur de séances', () => {
   const ctx = (over: Partial<Parameters<typeof generateSeance>[0]> = {}) => ({
     type: 'intensite' as const, location: 'club' as const, energy: 3 as const, intent: 'standard' as const,
     readinessDrop: false, fail6c: false, mardiIntense: false, focus: 'devers' as const,
-    focusAutre: 'dalle' as const, liberation: false, gate7a: false, maisonSeries: 3, ...over,
+    focusAutre: 'dalle' as const, liberation: false, gate7a: false, maisonSeries: 3, objectif: '6c' as const, ...over,
   });
 
   it('mardi fort + porte 7a + énergie 4 → projet 7a', () => {
-    const g = generateSeance(ctx({ energy: 4, gate7a: true, intent: 'renforcer' }));
+    const g = generateSeance(ctx({ energy: 4, gate7a: true, intent: 'renforcer', objectif: '7a' }));
     expect(g.type).toBe('intensite');
     expect(g.blocs.some((b) => b.niveau === '7a')).toBe(true);
   });
   it('mardi intensité → 5c, 6a, 2× 6c, 6b, 6a dans cet ordre', () => {
     const g = generateSeance(ctx());
     expect(g.blocs.map((b) => b.niveau)).toEqual(['5+', '6a', '6c', '6c', '6b', '6a']);
+  });
+  it('objectif 6b → échauffement 5b, projets 6b, technique 6a (pas de 6c)', () => {
+    const g = generateSeance(ctx({ objectif: '6b' }));
+    expect(g.blocs.map((b) => b.niveau)).toEqual(['5+', '5+', '6b', '6b', '6a', '5+']);
+    expect(g.blocs[0].detail).toContain('5b');
   });
   it('readiness en baisse → intensité −20% (1 seul essai chrono + volume facile)', () => {
     const g = generateSeance(ctx({ readinessDrop: true }));

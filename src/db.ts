@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie';
-import type { Bloc, Cause, Chute, Energy, Feel, Intent, Location, Niveau, Pain, Profil, SessionType } from './lib/types';
+import type { Bloc, Cause, Chute, Energy, Feel, Intent, Location, Niveau, Objectif, Pain, Profil, SessionType } from './lib/types';
 
 export * from './lib/types';
 
@@ -9,6 +9,7 @@ export interface Profile {
   level?: number; // 1..9 (5 = 6c, curseur Escalade Pro Training)
   cycleStart?: string; // 'yyyy-MM-dd' lancement du cycle de 12 semaines
   weekOffset?: number; // décalage manuel de semaine
+  objectif?: Objectif; // projet visé (défaut 6c) : pilote les cotations de la séance intensité
 }
 
 export interface Checkin {

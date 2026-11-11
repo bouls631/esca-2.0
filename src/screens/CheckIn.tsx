@@ -68,6 +68,7 @@ export function CheckInSheet({ open, onClose, data, now, onDone }: {
       mardiIntense: type === 'volume' && lastMardiIntense(data, now),
       focus, focusAutre, liberation: rotation.liberation, gate7a: gate,
       maisonSeries: maisonSeriesFor(data.seances, data.checkins),
+      objectif: data.profile.objectif ?? '6c',
     });
     const ck: Checkin = {
       date: key,
