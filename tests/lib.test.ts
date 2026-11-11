@@ -50,6 +50,17 @@ describe('détection de surmenage (14 j glissants)', () => {
     expect(v.alerts.some((a) => a.id === 'pains3')).toBe(true);
   });
 
+  it('un test readiness sans douleur coupe la série de douleurs', () => {
+    const v = evaluateSurmenage({
+      ...U([
+        checkin({ pains: ['doigts'], createdAt: now.getTime() - 20 * HOUR }),
+        checkin({ pains: ['doigts'], createdAt: now.getTime() - 44 * HOUR }),
+      ]),
+      readiness: [{ ...rd(60, 10, now.getTime() - 2 * HOUR), pains: [] }],
+    }, now);
+    expect(v.alerts.some((a) => a.id === 'pains3')).toBe(false);
+  });
+
   it('2 échecs 6c consécutifs le mardi → attention + fail6c', () => {
     const ses = [seance('intensite', now.getTime() - 7 * 24 * HOUR)];
     const vs = [voie(-8 * MIN, '6c', 'fin', 'force', ses[0].id), voie(-1 * MIN, '6c', 'milieu', 'force', ses[0].id)];

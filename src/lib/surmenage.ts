@@ -1,8 +1,7 @@
-import type { Checkin, Seance, Voie } from '../db';
+import type { Checkin, ReadinessTest, Seance, Voie } from '../db';
 
 // Détection de surmenage — 14 jours glissants. Pure, testée dans tests/lib.test.ts.
-// shortcut: la règle "douleurs 3 jours de suite" est évaluée sur les check-ins (2/sémaine,
-// ce check-in n'existe pas les autres jours), quand 3 check-ins consécutifs signalent une douleur.
+// shortcut: la règle "douleurs" compte les check-ins (2/sémaine) et les tests readiness ; un jour sans relevé ne compte pas.
 
 export type AlertId = 'pains3' | 'restDelta' | 'fail6c' | 'epuise48';
 export interface Alert {
@@ -21,21 +20,23 @@ export interface UserData {
   checkins: Checkin[];
   seances: Seance[];
   voies: Voie[];
+  readiness?: ReadinessTest[];
 }
 
 export function evaluateSurmenage(u: UserData, now: Date): Verdict {
   const alerts: Alert[] = [];
 
-  // 1) Douleurs récurrentes : 3 derniers check-ins avec douleur (≠ aucune) → séance bloquée
-  const painful = [...u.checkins]
-    .filter((c) => c.pains.some((p) => p !== 'aucune'))
-    .sort((a, b) => b.createdAt - a.createdAt);
-  if (painful.length >= 3 && painful.slice(0, 3).every((c) => c.pains.some((p) => p !== 'aucune'))) {
+  // 1) Douleurs récurrentes : 3 derniers relevés (check-in ou test readiness) avec douleur → séance bloquée. Un relevé sans douleur coupe la série.
+  const releves = [
+    ...u.checkins.map((c) => ({ ts: c.createdAt, douleur: c.pains.some((p) => p !== 'aucune') })),
+    ...(u.readiness ?? []).flatMap((t) => (t.pains ? [{ ts: t.createdAt, douleur: t.pains.length > 0 }] : [])),
+  ].sort((a, b) => b.ts - a.ts);
+  if (releves.length >= 3 && releves.slice(0, 3).every((r) => r.douleur)) {
     alerts.push({
       id: 'pains3',
       sev: 'rouge',
       title: 'Douleurs récurrentes',
-      message: '3 check-ins consécutifs avec douleur. Consulte ou repose-toi. Séance bloquée.',
+      message: '3 relevés consécutifs avec douleur. Consulte ou repose-toi. Séance bloquée.',
     });
   }
 

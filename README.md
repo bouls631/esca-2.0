@@ -104,7 +104,7 @@ Micro-workout maison (10 min, vendredi) prescrit selon la dernière cause de chu
 ### 2) Semaine avec alerte surmenage
 - **Mardi -1** : 6c → `Fin — souffle`. **Mardi J** : check-in ok → 6c → `Milieu — force`.
 - Le détecteur relève **2 échecs 6c consécutifs** → bandeau rouge. Le jeudi : check-in → plan override « 6a fluide uniquement », et le mardi suivant passe automatiquement en volume 6b.
-- Si en plus les douleurs « doigts » apparaissent sur 3 check-ins → **séance bloquée** : l'app propose « Repos forcé » ou « J'assume le risque » (décision notée, marqueur ⚠ dans l'historique).
+- Si en plus les douleurs « doigts » apparaissent sur 3 relevés consécutifs (check-in ou test readiness) → **séance bloquée** ; un relevé sans douleur (test readiness compris) lève le blocage : l'app propose « Repos forcé » ou « J'assume le risque » (décision notée, marqueur ⚠ dans l'historique).
 
 ### 3) Semaine avec adaptation (readiness bas)
 - **Dimanche** : deadhang 76s vs moyenne 100s (−24 %) → le test est invalidé (>20 %).

@@ -61,6 +61,7 @@ export interface ReadinessTest {
   deadhangS: number;
   tractions: number;
   ressenti: number; // 1-10
+  pains?: Pain[]; // douleurs au moment du test ([] = aucune) ; absent sur les anciens tests
   createdAt: number;
 }
 

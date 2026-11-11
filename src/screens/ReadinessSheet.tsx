@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { db, type Profile, type ReadinessTest } from '../db';
+import { db, PAIN_LABELS, type Pain, type Profile, type ReadinessTest } from '../db';
 import { Btn, Card, Chip, Tag } from '../components/ui';
 import { Sheet } from '../components/Sheet';
 import { readinessAssessment } from '../lib/readiness';
 
 const HOLDS = ['réglette 1 doigt', 'réglette 2 doigts', 'arête', 'barre'];
+const PAINS: Pain[] = ['doigts', 'avant_bras', 'epaules', 'dos'];
 
 /** Test de readiness hebdo (dimanche soir, 5 min) : deadhang poutre + tractions + ressenti. */
 export function ReadinessSheet({ open, onClose, profile, existing }: { open: boolean; onClose: () => void; profile: Profile; existing: ReadinessTest[] }) {
@@ -14,6 +15,7 @@ export function ReadinessSheet({ open, onClose, profile, existing }: { open: boo
   const [deadhangS, setDeadhangS] = useState(60);
   const [tractions, setTractions] = useState(10);
   const [ressenti, setRessenti] = useState(7);
+  const [pains, setPains] = useState<Pain[]>([]);
 
   const saved = [...existing].sort((a, b) => b.createdAt - a.createdAt);
   const ra = readinessAssessment(existing);
@@ -26,6 +28,7 @@ export function ReadinessSheet({ open, onClose, profile, existing }: { open: boo
       deadhangS,
       tractions,
       ressenti,
+      pains,
       createdAt: now.getTime(),
     };
     await db.transaction('rw', db.readiness, db.profile, async () => {
@@ -88,6 +91,15 @@ export function ReadinessSheet({ open, onClose, profile, existing }: { open: boo
             ))}
           </div>
           <p className="mt-1 font-mono text-[10px] text-zinc-500">1 = dans le caniveau · 10 = machine</p>
+        </div>
+
+        <div>
+          <p className="mb-1.5 font-mono text-xs uppercase tracking-widest text-zinc-500">Douleurs maintenant (vide = aucune)</p>
+          <div className="flex flex-wrap gap-2">
+            {PAINS.map((p) => (
+              <Chip key={p} selected={pains.includes(p)} onClick={() => setPains(pains.includes(p) ? pains.filter((x) => x !== p) : [...pains, p])}>{PAIN_LABELS[p]}</Chip>
+            ))}
+          </div>
         </div>
 
         <Btn size="lg" onClick={() => void save()}>Enregistrer le test</Btn>

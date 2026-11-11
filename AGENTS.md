@@ -40,7 +40,7 @@ Coach Voie : PWA française (React 19 + Vite 7 + TypeScript strict + Dexie), coa
 ## Règles métier (ne pas bifurquer sans demande)
 
 - Calendrier fixe : mardi = intensité, jeudi = volume. Hors calendrier, le check-in force le type.
-- Surmenage (14 j glissants) : douleurs sur les 3 derniers check-ins avec douleur → bloqué (`pains3`) ; récupération entre voies en hausse (`restDelta`) → bloqué ; 2 échecs 6c consécutifs (`fail6c`) ; énergie 1 et séance < 48 h → repos actif (`epuise48`). Source : `surmenage.ts`.
+- Surmenage (14 j glissants) : douleurs sur les 3 derniers relevés (check-in ou test readiness) avec douleur → bloqué (`pains3`) ; un relevé sans douleur coupe la série ; récupération entre voies en hausse (`restDelta`) → bloqué ; 2 échecs 6c consécutifs (`fail6c`) ; énergie 1 et séance < 48 h → repos actif (`epuise48`). Source : `surmenage.ts`.
 - « J'assume le risque » est toujours possible, mais le check-in garde `override: true` et Stats l'affiche avec ⚠.
 - Readiness : baisse > 20 % vs moyenne des 4 tests précédents → intensité −20 %.
 - Porte 7a : 3 tops 6c le mardi en 4 semaines + readiness stable + pas de blocage.

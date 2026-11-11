@@ -35,7 +35,7 @@ function shiftGrade(delta: number): string {
 export function levelConfig(rawLevel = 5): LevelConfig {
   const level = Math.max(1, Math.min(9, Math.round(rawLevel) || 5));
   const d = level - 5;
-  const hold = d <= -3 ? '20mm' : d <= -1 ? '15mm' : d >= 2 ? '10mm' : '15mm';
+  const hold = d >= 2 ? '10mm' : '20mm';
   return {
     level,
     d,

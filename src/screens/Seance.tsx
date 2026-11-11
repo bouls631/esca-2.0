@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { format, subDays } from 'date-fns';
+import { format } from 'date-fns';
 import type { AppData, Tab } from '../App';
 import { db, FEEL_LABELS, NIVEAU_LABELS, PROFIL_LABELS, SESSION_LABELS, type Bloc, type Niveau, type Profil, type Ressenti } from '../db';
 import { Btn, Card, Chip, Tag, TimerCard, cx, useTimer } from '../components/ui';
@@ -7,7 +7,6 @@ import { CheckInSheet } from './CheckIn';
 import { JournalVoie } from './JournalVoie';
 import { evaluateSurmenage } from '../lib/surmenage';
 import { rotationFor } from '../lib/cycles';
-import { analyses } from '../lib/analyse-causes';
 import { useSwipe } from '../lib/useSwipe';
 import { timer } from '../lib/timer';
 import { cotationToNiveau, relaisToProfil, suggestRoutesFor, type OblykRoute } from '../lib/routes';
@@ -38,8 +37,6 @@ export default function Seance({ data, now, go }: { data: AppData; now: Date; go
   const [journal, setJournal] = useState<JournalTarget | null>(null);
 
   const voiesToday = seance?.id !== undefined ? data.voies.filter((v) => v.seanceId === seance.id) : [];
-  const voies14 = data.voies.filter((v) => v.date >= subDays(now, 14).getTime());
-  const prescriptions = analyses(voies14);
   const hardBlocked = seance !== undefined && verdict.state === 'bloque' && !(ck?.override ?? false);
 
   async function skipBloc(blocId: string, skipped: boolean) {
@@ -159,17 +156,6 @@ export default function Seance({ data, now, go }: { data: AppData; now: Date; go
                   </p>
                 ))}
               </div>
-            </Card>
-          )}
-
-          {prescriptions.length > 0 && (
-            <Card className="border-sky-700 bg-sky-950/10">
-              <p className="font-mono text-xs font-bold uppercase text-sky-300">Analyse coach (14 jours)</p>
-              {prescriptions.map((p) => (
-                <p key={p.deficit} className="mt-1 font-mono text-[11px] leading-relaxed text-zinc-300">
-                  <span className="font-bold text-sky-300">{p.titre}</span> — {p.detail}
-                </p>
-              ))}
             </Card>
           )}
 
