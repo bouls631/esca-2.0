@@ -46,6 +46,7 @@ Coach Voie : PWA française (React 19 + Vite 7 + TypeScript strict + Dexie), coa
 - Porte 7a : 3 tops 6c le mardi en 4 semaines + readiness stable + pas de blocage.
 - Mardi intense (essais 6c/7a loggés) → jeudi limité à 7 voies, sans 6c.
 - Pratique voie/bloc (check-in, club uniquement) : `Checkin.pratique` (défaut voie). Bloc = couleurs `COULEURS_BLOC` (jaune → rose), objectif `profile.objectifBloc` (défaut rouge), bornées au jaune/rose, sans `niveau` (donc pas de journal voie).
+- Lundi poutre : plan 8 semaines inspiré de Rocklands (répétitions 7 s/3 s S1-3, récup S4, suspensions max 10 s S5-7, test 10 s S8) mappé sur les 12 semaines du cycle dans `fingerSpec`. 2 séances par semaine : lundi et samedi (samedi à 48 h de lundi, doigts frais).
 - `restDelta` ignore les séances d'intensité avec moins de 3 voies (`surmenage.ts`, « il faut ≥2 intervalles »).
 
 ## Pièges TypeScript / React

@@ -256,9 +256,18 @@ describe('intégration Oblyk RAPPEL & cycle 12 semaines (Escalade Pro)', () => {
     const c4 = cycleInfo(now, '2026-05-19', 0); // 3 semaines avant → S4 décharge
     expect(c4.week).toBe(4);
     expect(c4.deload).toBe(true);
-    const f = fingerSpec(levelConfig(5), c4);
-    expect(f.seq[0].d).toBe(10);
-    expect(f.seq.length).toBe(f.sets * 3 - 1);
+    const f4 = fingerSpec(levelConfig(5), c4);
+    expect(f4.mode).toBe('recovery');
+    expect(f4.sets).toBe(2);
+    expect(f4.seq[0].d).toBe(10);
+    const f1 = fingerSpec(levelConfig(5), cycleInfo(now, '2026-06-09', 0));
+    expect(f1.mode).toBe('repeaters');
+    expect(f1.sets).toBe(3);
+    expect(f1.seq.filter((p) => p.t.startsWith('Travail')).length).toBe(18);
+    const f6 = fingerSpec(levelConfig(5), cycleInfo(now, '2026-05-05', 0));
+    expect(f6.mode).toBe('max');
+    expect(f6.sets).toBe(5);
+    expect(f6.seq.some((p) => p.d === 180)).toBe(true);
     const h = homeSpec(levelConfig(5), c4);
     expect(h.seq.some((p) => p.k === 'wait')).toBe(true);
     expect(fingerBestByHold([{ date: '2026-06-01', hold: '15mm', kg: 10, sets: 5, work: 7, week: 1, createdAt: 1 }])['15mm']).toBe(10);

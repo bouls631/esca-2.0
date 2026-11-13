@@ -79,17 +79,92 @@ export interface SeqStep {
   tone: 'sky' | 'lime' | 'amber';
 }
 
+export type FingerMode = 'repeaters' | 'max' | 'recovery' | 'test';
+
+const FINGER_REPS = 6;
+const FINGER_SERIES_REST = 180;
+
+/**
+ * Lundi — plan poutre 8 semaines (Rocklands) : répétitions 7 s/3 s en S1-3, récupération en S4,
+ * suspensions max 10 s en S5-7, test 10 s en S8. Le cycle de 12 semaines reboucle sur ces 8.
+ */
 export function fingerSpec(cfg: LevelConfig, cyc: CycleInfo) {
-  const sets = Math.max(2, (cfg.d >= 3 ? 6 : 5) - (cyc.deload ? 1 : 0));
-  const work = cyc.phase === '9-12' ? 5 : 7;
-  const rest = cyc.phase === '9-12' ? 55 : 53;
+  const week = ((cyc.week - 1) % 8) + 1;
   const seq: SeqStep[] = [];
-  for (let i = 1; i <= sets; i++) {
-    seq.push({ k: 'count', d: FINGER_SETUP_S, t: `Mise en place — série ${i}/${sets}`, tone: 'sky' });
-    seq.push({ k: 'count', d: work, t: `Travail — série ${i}/${sets}`, tone: 'lime' });
-    if (i < sets) seq.push({ k: 'count', d: rest, t: `Repos — série ${i}/${sets}`, tone: 'amber' });
+  const setup = (t: string) => seq.push({ k: 'count', d: FINGER_SETUP_S, t, tone: 'sky' });
+
+  if (week === 4) {
+    const sets = 2;
+    for (let s = 1; s <= sets; s++) {
+      setup(`Mise en place — suspension longue ${s}/${sets}`);
+      seq.push({ k: 'count', d: 30, t: `Suspension longue facile ${s}/${sets} (40 mm, sans forcer)`, tone: 'lime' });
+      if (s < sets) seq.push({ k: 'count', d: 60, t: 'Repos', tone: 'amber' });
+    }
+    return {
+      week, mode: 'recovery' as FingerMode, sets, work: 30, rest: 60,
+      badge: 'Récupération',
+      hint: 'Semaine 4 : on laisse les tendons assimiler. Suspensions très faciles, aucune douleur.',
+      meta: [
+        { label: 'Séries', val: '2' },
+        { label: 'Tenue', val: '30s' },
+        { label: 'Repos', val: '60s' },
+      ],
+      seq,
+    };
   }
-  return { sets, work, rest, setup: FINGER_SETUP_S, seq };
+
+  if (week === 8) {
+    setup('Mise en place — test 10 s sur 20 mm, 4 doigts semi-arquée');
+    seq.push({ k: 'count', d: 10, t: 'Test 10 s — note le réglage (prise + poids dans les pieds)', tone: 'lime' });
+    return {
+      week, mode: 'test' as FingerMode, sets: 1, work: 10, rest: 0,
+      badge: 'Test 10 s',
+      hint: 'Cherche le réglage qui te fait tenir 10 s, pas plus. Un cran gagné depuis le début du cycle = progrès.',
+      meta: [
+        { label: 'Test', val: '10s' },
+        { label: 'Prise', val: '20 mm' },
+        { label: 'Doigts', val: '4' },
+      ],
+      seq,
+    };
+  }
+
+  const max = week >= 5;
+  const sets = max ? 5 : week >= 3 ? 4 : 3;
+  for (let s = 1; s <= sets; s++) {
+    setup(`Mise en place — ${max ? 'suspension max' : 'série'} ${s}/${sets}`);
+    if (max) {
+      seq.push({ k: 'count', d: 10, t: `Suspension max 10 s ${s}/${sets} — garde 3 s de marge`, tone: 'lime' });
+    } else {
+      for (let r = 1; r <= FINGER_REPS; r++) {
+        seq.push({ k: 'count', d: 7, t: `Travail ${r}/${FINGER_REPS} — série ${s}/${sets}`, tone: 'lime' });
+        seq.push({ k: 'count', d: 3, t: `Relâche ${r}/${FINGER_REPS}`, tone: 'amber' });
+      }
+    }
+    if (s < sets) seq.push({ k: 'count', d: FINGER_SERIES_REST, t: 'Repos 3 min', tone: 'amber' });
+  }
+  return {
+    week, mode: (max ? 'max' : 'repeaters') as FingerMode,
+    sets, work: max ? 10 : 7, rest: FINGER_SERIES_REST,
+    badge: `${cfg.hold} · ${max ? 'max 10 s' : 'répétitions'}`,
+    hint: max
+      ? `Choisis une prise tenue ~13 s et arrête à 10 s. ${cfg.hold}, ${cfg.lest}, 3 min de repos.`
+      : `7 s de suspension, 3 s de relâche, 6 fois = 1 série. ${cfg.hold}, ${cfg.lest}, 3 min de repos entre séries.`,
+    meta: max
+      ? [
+          { label: 'Séries', val: String(sets) },
+          { label: 'Travail', val: '10s' },
+          { label: 'Repos', val: '3 min' },
+          { label: 'Prépa', val: `${FINGER_SETUP_S}s` },
+        ]
+      : [
+          { label: 'Séries', val: String(sets) },
+          { label: 'Répétitions', val: `${FINGER_REPS}×` },
+          { label: 'Travail', val: '7s' },
+          { label: 'Relâche', val: '3s' },
+        ],
+    seq,
+  };
 }
 
 const HOME_REST = [120, 90, 90, 45];

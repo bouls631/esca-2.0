@@ -55,7 +55,7 @@ export default function Aujourdhui({ data, now, go }: { data: AppData; now: Date
     const kg = Math.max(0, parseFloat(fingerKg) || 0);
     await db.finger.add({
       date: key,
-      hold: cfg.hold,
+      hold: fSpec.mode === 'recovery' ? '40mm' : cfg.hold,
       kg,
       sets: fSpec.sets,
       work: fSpec.work,
@@ -144,19 +144,20 @@ export default function Aujourdhui({ data, now, go }: { data: AppData; now: Date
         </Card>
       )}
 
-      {dayN === 1 && (
+      {(dayN === 1 || dayN === 6) && (
         <SeqTimerCard
-          title="Chrono · Force de doigts (lundi)"
-          badge={cfg.hold}
+          title={`Chrono · Force de doigts (${dayN === 1 ? 'lundi — 1/2' : 'samedi — 2/2'}) — ${fSpec.badge}`}
+          badge={fSpec.mode === 'recovery' ? '40mm' : cfg.hold}
           seq={fSpec.seq}
-          meta={[
-            { label: 'Séries', val: String(fSpec.sets) },
-            { label: 'Travail', val: `${fSpec.work}s` },
-            { label: 'Repos', val: `${fSpec.rest}s` },
-            { label: 'Prépa', val: `${fSpec.setup}s` },
-          ]}
+          meta={fSpec.meta}
           onComplete={() => void logFingerSession()}
         >
+          <p className="mt-2 font-mono text-xs text-zinc-400">{fSpec.hint}</p>
+          {dayN === 6 && (
+            <p className="mt-1 font-mono text-xs text-amber-300">
+              2e séance de la semaine, à 48 h de lundi. Doigts frais, jamais après une grosse séance de bloc.
+            </p>
+          )}
           <div className="mt-3 flex items-center gap-2">
             <input
               type="number"

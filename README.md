@@ -89,6 +89,7 @@ S1 dévers/dalle · S2 toit/libre · S3 dièdre/dévers · S4 libre ou récupér
 - 2× cause « Mental » → respiration 4-7-8 + visualisation avant chaque séance.
 
 ### Mercredi mobilité & samedi renforcement
+- **Lundi & samedi** — chrono force de doigts (poutre), plan 8 semaines inspiré de Rocklands : répétitions 7 s/3 s (6 fois, 3 min de repos) en S1-3, récupération en S4, suspensions max 10 s en S5-7, test 10 s en S8, puis rebouclé sur les 12 semaines du cycle. Le samedi se fait à 48 h de lundi, doigts frais.
 - **Mercredi** — chrono mobilité (hanches, épaules, ischios, avant-bras, colonne ; + rotation thoracique dès le niveau 6b+). Tenue 30/40/50 s selon le niveau, 2 tours, environ 9 à 18 min.
 - **Samedi** — chrono renforcement (fentes bulgares, pompes, gainage latéral, Y-T-W, poignets), sans anneaux. Séries 2 à 4 selon le niveau, une série de moins en semaine de décharge (S4/S8/S12).
 
