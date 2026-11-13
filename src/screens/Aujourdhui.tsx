@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
 import type { AppData, Tab } from '../App';
-import { db, CAUSE_LABELS, COULEURS_BLOC, OBJECTIFS, PROFIL_LABELS, type CouleurBloc, type Objectif } from '../db';
+import { db, CAUSE_LABELS, PROFIL_LABELS } from '../db';
 import { Btn, Card, Chip, Tag, TimerCard } from '../components/ui';
 import { SeqTimerCard } from '../components/SeqTimerCard';
 import { rotationFor } from '../lib/cycles';
 import { evaluateSurmenage } from '../lib/surmenage';
 import { ready7a } from '../lib/readiness';
-import { grade } from '../lib/generator';
 import { lastFailCause, microWorkout } from '../lib/analyse-causes';
 import { coachLevelVerdict, cycleInfo, fingerBestByHold, fingerSpec, homeSpec, HOLD_LABELS, levelConfig, mobiliteSpec, profileSuccessStats, renfoSpec } from '../lib/plan';
 import { ReadinessSheet } from './ReadinessSheet';
@@ -28,8 +27,6 @@ export default function Aujourdhui({ data, now, go }: { data: AppData; now: Date
   const isSessionDay = dayN === 2 || dayN === 4;
 
   const cfg = levelConfig(data.profile.level ?? 5);
-  const objectif: Objectif = data.profile.objectif ?? '6c';
-  const objectifBloc: CouleurBloc = data.profile.objectifBloc ?? 'rouge';
   const cyc = cycleInfo(now, data.profile.cycleStart, data.profile.weekOffset);
   const fSpec = fingerSpec(cfg, cyc);
   const hSpec = homeSpec(cfg, cyc);
@@ -42,14 +39,6 @@ export default function Aujourdhui({ data, now, go }: { data: AppData; now: Date
   async function setLevel(lv: number) {
     const clamped = Math.max(1, Math.min(9, lv));
     await db.profile.put({ ...data.profile, id: 'me', level: clamped });
-  }
-
-  async function setObjectif(o: Objectif) {
-    await db.profile.put({ ...data.profile, id: 'me', objectif: o });
-  }
-
-  async function setObjectifBloc(c: CouleurBloc) {
-    await db.profile.put({ ...data.profile, id: 'me', objectifBloc: c });
   }
 
   async function nudgeWeek(delta: number) {
@@ -273,23 +262,6 @@ export default function Aujourdhui({ data, now, go }: { data: AppData; now: Date
           <Tag tone={cyc.deload ? 'amber' : 'emerald'}>
             Semaine {cyc.week}/12 {cyc.deload ? '· décharge' : ''}
           </Tag>
-        </div>
-
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <span className="font-mono text-xs text-zinc-400">Objectif projet :</span>
-          {OBJECTIFS.map((o) => (
-            <Chip key={o} selected={objectif === o} onClick={() => void setObjectif(o)} className="px-2.5 py-1 text-xs">{o}</Chip>
-          ))}
-        </div>
-        <p className="mt-1 font-mono text-[11px] text-zinc-500">
-          Intensité : échauffement {grade(objectif, -3)} → projet {objectif} (2 essais ×2) → technique {grade(objectif, -1)}.
-        </p>
-
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <span className="font-mono text-xs text-zinc-400">Objectif bloc :</span>
-          {COULEURS_BLOC.map((c) => (
-            <Chip key={c} selected={objectifBloc === c} onClick={() => void setObjectifBloc(c)} className="px-2.5 py-1 text-xs">{c}</Chip>
-          ))}
         </div>
 
         <div className="mt-3 flex items-center gap-2">
