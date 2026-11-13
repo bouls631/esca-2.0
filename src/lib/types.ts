@@ -10,7 +10,7 @@ export type Intent = 'standard' | 'alleger' | 'renforcer' | 'reporter';
 export type Niveau = '5+' | '6a' | '6b' | '6b+' | '6c' | '7a';
 export type Chute = 'depart' | 'milieu' | 'fin' | 'top';
 export type Cause = 'force' | 'souffle' | 'technique' | 'mental' | 'doigts';
-export type Profil = 'dalle' | 'devers' | 'toit' | 'diedre' | 'arete';
+export type Profil = 'dalle' | 'devers' | 'toit' | 'diedre';
 export type Axis = 'force' | 'endurance' | 'technique' | 'mental';
 
 export interface Bloc {
@@ -75,7 +75,6 @@ export const PROFIL_LABELS: Record<Profil, string> = {
   devers: 'Dévers',
   toit: 'Toit',
   diedre: 'Dièdre',
-  arete: 'Arête',
 };
 export const SESSION_LABELS: Record<SessionType, string> = {
   intensite: 'Intensité',

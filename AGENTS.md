@@ -35,17 +35,17 @@ Coach Voie : PWA française (React 19 + Vite 7 + TypeScript strict + Dexie), coa
 - `PLAN_GRADES` (`plan.ts`) : `'4a'…'8a'`, utilisé par le curseur `profile.level` (1..9, 5 = 6c) et les cibles de volume.
 - `Objectif` (`types.ts`) : `'6a' | '6b' | '6c' | '7a'`, stocké dans `profile.objectif` (défaut 6c). La fonction `grade(obj, d)` de `generator.ts` calcule les cotations à `d` crans de l'objectif. L'échauffement est à −3 crans (6c → 5c), le projet à 0, la technique à −1.
 - Le curseur de niveau et l'objectif sont indépendants. Le curseur pilote doigts, mobilité et renforcement.
-- Règles encore figées sur le 6c : alerte `fail6c`, porte 7a (tops 6c le mardi), `lastMardiIntense`. Elles ne suivent pas `objectif`.
+- Règles encore figées sur le 6c : porte 7a (tops 6c le mardi), `lastMardiIntense`. Elles ne suivent pas `objectif`.
 
 ## Règles métier (ne pas bifurquer sans demande)
 
 - Calendrier fixe : mardi = intensité, jeudi = volume. Hors calendrier, le check-in force le type.
-- Surmenage (14 j glissants) : douleurs sur les 3 derniers relevés (check-in ou test readiness) avec douleur → bloqué (`pains3`) ; un relevé sans douleur coupe la série ; récupération entre voies en hausse (`restDelta`) → bloqué ; 2 échecs 6c consécutifs (`fail6c`) ; énergie 1 et séance < 48 h → repos actif (`epuise48`). Source : `surmenage.ts`.
+- Surmenage (14 j glissants) : douleurs sur les 3 derniers relevés (check-in ou test readiness) avec douleur → bloqué (`pains3`) ; un relevé sans douleur coupe la série ; récupération entre voies en hausse (`restDelta`) → bloqué ; énergie 1 et séance < 48 h → repos actif (`epuise48`). Source : `surmenage.ts`.
 - « J'assume le risque » est toujours possible, mais le check-in garde `override: true` et Stats l'affiche avec ⚠.
 - Readiness : baisse > 20 % vs moyenne des 4 tests précédents → intensité −20 %.
 - Porte 7a : 3 tops 6c le mardi en 4 semaines + readiness stable + pas de blocage.
 - Mardi intense (essais 6c/7a loggés) → jeudi limité à 7 voies, sans 6c.
-- Pratique voie/bloc (check-in, club uniquement) : `Checkin.pratique` (défaut voie). Bloc = couleurs `COULEURS_BLOC` (jaune → rose), objectif `profile.objectifBloc` (défaut rouge), bornées au jaune/rose, sans `niveau` (donc pas de journal voie). `fail6c` ne s'applique qu'aux voies.
+- Pratique voie/bloc (check-in, club uniquement) : `Checkin.pratique` (défaut voie). Bloc = couleurs `COULEURS_BLOC` (jaune → rose), objectif `profile.objectifBloc` (défaut rouge), bornées au jaune/rose, sans `niveau` (donc pas de journal voie).
 - `restDelta` ignore les séances d'intensité avec moins de 3 voies (`surmenage.ts`, « il faut ≥2 intervalles »).
 
 ## Pièges TypeScript / React

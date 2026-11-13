@@ -61,14 +61,6 @@ describe('détection de surmenage (14 j glissants)', () => {
     expect(v.alerts.some((a) => a.id === 'pains3')).toBe(false);
   });
 
-  it('2 échecs 6c consécutifs le mardi → attention + fail6c', () => {
-    const ses = [seance('intensite', now.getTime() - 7 * 24 * HOUR)];
-    const vs = [voie(-8 * MIN, '6c', 'fin', 'force', ses[0].id), voie(-1 * MIN, '6c', 'milieu', 'force', ses[0].id)];
-    const v = evaluateSurmenage(U([checkin()], ses, vs), now);
-    expect(v.state).toBe('attention');
-    expect(v.alerts.some((a) => a.id === 'fail6c')).toBe(true);
-  });
-
   it('récupération entre voies +8 min la semaine dernière → bloque', () => {
     const s1 = seance('intensite', now.getTime() - 14 * 24 * HOUR);
     const s2 = seance('intensite', now.getTime() - 7 * 24 * HOUR);
@@ -123,7 +115,7 @@ describe('readiness', () => {
 describe('générateur de séances', () => {
   const ctx = (over: Partial<Parameters<typeof generateSeance>[0]> = {}) => ({
     type: 'intensite' as const, location: 'club' as const, energy: 3 as const, intent: 'standard' as const,
-    readinessDrop: false, fail6c: false, mardiIntense: false, focus: 'devers' as const,
+    readinessDrop: false, mardiIntense: false, focus: 'devers' as const,
     focusAutre: 'dalle' as const, liberation: false, gate7a: false, maisonSeries: 3, objectif: '6c' as const,
     pratique: 'voie' as const, objectifBloc: 'rouge' as const, ...over,
   });
@@ -158,11 +150,6 @@ describe('générateur de séances', () => {
     const g = generateSeance(ctx({ readinessDrop: true }));
     expect(g.note).toContain('20%');
     expect(g.blocs.filter((b) => b.niveau === '6c').length).toBe(1);
-  });
-  it('2 échecs 6c consécutifs → bascule volume 6b, plus aucun 6c/7a', () => {
-    const g = generateSeance(ctx({ fail6c: true }));
-    expect(g.type).toBe('volume');
-    expect(g.blocs.some((b) => b.niveau === '6c' || b.niveau === '7a')).toBe(false);
   });
   it('forme épuisée (energy ≤ 2) → mode volume', () => {
     const g = generateSeance(ctx({ energy: 1 }));

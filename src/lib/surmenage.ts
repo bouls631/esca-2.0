@@ -3,7 +3,7 @@ import type { Checkin, ReadinessTest, Seance, Voie } from '../db';
 // Détection de surmenage — 14 jours glissants. Pure, testée dans tests/lib.test.ts.
 // shortcut: la règle "douleurs" compte les check-ins (2/sémaine) et les tests readiness ; un jour sans relevé ne compte pas.
 
-export type AlertId = 'pains3' | 'restDelta' | 'fail6c' | 'epuise48';
+export type AlertId = 'pains3' | 'restDelta' | 'epuise48';
 export interface Alert {
   id: AlertId;
   sev: 'rouge' | 'orange';
@@ -51,17 +51,7 @@ export function evaluateSurmenage(u: UserData, now: Date): Verdict {
     });
   }
 
-  // 3) 2 échecs consécutifs sur 6c (mardi) → alerte rouge, report sur volume facile
-  if (twoConsecutive6cFails(u)) {
-    alerts.push({
-      id: 'fail6c',
-      sev: 'orange',
-      title: '2 échecs consécutifs sur 6c',
-      message: 'Risque blessure. Mardi : stop projet (volume 6b). Jeudi : 6a fluide uniquement ou repos.',
-    });
-  }
-
-  // 4) Énergie épuisée + dernière séance < 48h → repos actif imposé (mobilité 20 min)
+  // 3) Énergie épuisée + dernière séance < 48h → repos actif imposé (mobilité 20 min)
   const in14d = (ts: number) => now.getTime() - ts <= 14 * 24 * 3600 * 1000;
   const latestCheckin = [...u.checkins].sort((a, b) => b.createdAt - a.createdAt)
     .find((c) => in14d(c.createdAt));
@@ -78,7 +68,6 @@ export function evaluateSurmenage(u: UserData, now: Date): Verdict {
   const has = (id: AlertId) => alerts.some((a) => a.id === id);
   const state: VerdictState = has('pains3') || has('restDelta') ? 'bloque'
     : has('epuise48') ? 'repos_actif'
-    : has('fail6c') ? 'attention'
     : 'ok';
   return { state, alerts };
 }
@@ -96,17 +85,7 @@ function maxActivityTs(u: UserData, now: Date): number {
   return max;
 }
 
-// Échecs 6c consécutifs : les 2 derniers essais 6c de séances "intensité" (ou tombées le mardi)…
-function twoConsecutive6cFails(u: UserData): boolean {
-  const intensiteIds = new Set(u.seances.filter((s) => s.type === 'intensite').map((s) => s.id));
-  const fails = u.voies
-    .filter((v) => v.niveau === '6c' && (v.seanceId === undefined ? isTuesday(v.date) : intensiteIds.has(v.seanceId)))
-    .sort((a, b) => b.date - a.date)
-    .slice(0, 2);
-  return fails.length === 2 && fails.every((v) => v.chute !== 'top');
-}
-
-// …evaluées par intervalles entre log de voies. Retourne la hausse (min) de la médiane entre les 2 dernières séances intensité, null si incomparable.
+// Évaluées par intervalles entre log de voies. Retourne la hausse (min) de la médiane entre les 2 dernières séances intensité, null si incomparable.
 function restIntervalDelta(u: UserData): number | null {
   const medians: { date: number; median: number }[] = [];
   for (const s of u.seances.filter((s) => s.type === 'intensite').sort((a, b) => b.createdAt - a.createdAt)) {

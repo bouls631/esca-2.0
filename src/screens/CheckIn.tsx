@@ -58,14 +58,12 @@ export function CheckInSheet({ open, onClose, data, now, onDone }: {
     const focus = type === 'intensite' ? rotation.mardi : rotation.jeudi;
     const focusAutre = type === 'intensite' ? rotation.jeudi : rotation.mardi;
     const ra = readinessAssessment(data.readiness);
-    const fail6c = verdict.alerts.some((a) => a.id === 'fail6c');
     const gate = ready7a({ seances: data.seances, voies: data.voies, readiness: data.readiness }, now, verdict).ready;
     // "J'assume le risque" est noté : l'app garde la trace de la décision.
     const overridden = verdict.state === 'bloque' && loc !== 'repos_force' && (override || forceLocation === undefined);
     const gen = generateSeance({
       type, location: loc, energy, intent,
       readinessDrop: ra.drop,
-      fail6c: fail6c && type === 'intensite' && pratique === 'voie',
       mardiIntense: type === 'volume' && lastMardiIntense(data, now),
       focus, focusAutre, liberation: rotation.liberation, gate7a: gate,
       maisonSeries: maisonSeriesFor(data.seances, data.checkins),

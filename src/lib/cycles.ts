@@ -12,7 +12,7 @@ export interface Rotation {
 
 const ROTATIONS: Record<number, Rotation> = {
   1: { no: 1, mardi: 'devers', jeudi: 'dalle', liberation: false },
-  2: { no: 2, mardi: 'toit', jeudi: 'arete', liberation: false },
+  2: { no: 2, mardi: 'toit', jeudi: null, liberation: false },
   3: { no: 3, mardi: 'diedre', jeudi: 'devers', liberation: false },
   4: { no: 4, mardi: null, jeudi: null, liberation: true },
 };

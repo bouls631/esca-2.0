@@ -5,7 +5,7 @@ import { Sheet } from '../components/Sheet';
 
 const CHUTES: Chute[] = ['depart', 'milieu', 'fin', 'top'];
 const CAUSES: Cause[] = ['force', 'souffle', 'technique', 'mental', 'doigts'];
-const PROFILS: Profil[] = ['dalle', 'devers', 'toit', 'diedre', 'arete'];
+const PROFILS: Profil[] = ['dalle', 'devers', 'toit', 'diedre'];
 
 /** Journal de voie post-essai : niveau, point de chute, cause, et relais Oblyk optionnel. */
 export function JournalVoie({ open, onClose, seanceId, blocId, defaultNiveau, defaultProfil, defaultRelais, defaultSecteur, defaultCouleur, defaultOblykId, onSaved }: {

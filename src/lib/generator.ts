@@ -9,7 +9,6 @@ export interface GenCtx {
   energy: Energy;
   intent: Intent;
   readinessDrop: boolean;
-  fail6c: boolean;
   mardiIntense: boolean;
   focus: Profil | null;
   focusAutre: Profil | null;
@@ -56,15 +55,6 @@ export function generateSeance(ctx: GenCtx): { type: SessionType; note?: string;
   const T = ctx.objectif;
   const g = (d: number) => grade(T, d);
   if (ctx.type === 'intensite') {
-    // Règle dure : 2 échecs consécutifs sur le même projet → stop, volume 6b
-    if (ctx.fail6c) {
-      const v = volumeBlocs(true, null, T); // mardiIntense=true → pas de finisher, juste du volume fluide
-      return {
-        type: 'volume',
-        note: `⚠ 2 échecs 6c consécutifs → projet en pause. Volume ${g(-1)} aujourd'hui.`,
-        blocs: v,
-      };
-    }
     // Forme basse ou reporter → bascule en mode volume
     if (ctx.energy <= 2 || ctx.intent === 'reporter') {
       const v = volumeBlocs(ctx.mardiIntense, ctx.focus, T);

@@ -71,8 +71,7 @@ tests/lib.test.ts        23 tests : surmenage, readiness, 7a, générateur, anal
 ### Détecteur de surmenage (14 jours glissants) — par priorité
 1. **Douleurs récurrentes** (3 derniers check-ins ≠ aucune) → **séance bloquée**.
 2. **Récupération entre voies +5 min** (médianes des 2 dernières séances d'intensité) → **repos forcé**.
-3. **2 échecs 6c consécutifs** (mardi) → mardi = volume 6b, jeudi = 6a fluide ou repos.
-4. **Énergie épuisée + séance < 48 h** → **repos actif** (mobilité 20 min).
+3. **Énergie épuisée + séance < 48 h** → **repos actif** (mobilité 20 min).
    Override « J'assume le risque » : tout est possible, la décision est tracée (check-in `override`).
 
 ### Readiness (dimanche)
@@ -82,7 +81,7 @@ deadhang (prise choisie) + tractions + ressenti /10. **Baisse > 20 % vs moyenne 
 3 tops 6c **le mardi** en 4 semaines + readiness stable + aucun blocage → le mardi passe en **projet 7a (3 essais, repos 20 min)**.
 
 ### Rotation anti-spécialisation (semaines ISO)
-S1 dévers/dalle · S2 toit/arête · S3 dièdre/dévers · S4 libre ou récupération.
+S1 dévers/dalle · S2 toit/libre · S3 dièdre/dévers · S4 libre ou récupération.
 
 ### Journal de chute → analyse (fenêtre 14 jours)
 - 3× « Fin » → déficit endurance → jeudi +1 voie d'enchaînement.
@@ -103,7 +102,6 @@ Micro-workout maison (10 min, vendredi) prescrit selon la dernière cause de chu
 
 ### 2) Semaine avec alerte surmenage
 - **Mardi -1** : 6c → `Fin — souffle`. **Mardi J** : check-in ok → 6c → `Milieu — force`.
-- Le détecteur relève **2 échecs 6c consécutifs** → bandeau rouge. Le jeudi : check-in → plan override « 6a fluide uniquement », et le mardi suivant passe automatiquement en volume 6b.
 - Si en plus les douleurs « doigts » apparaissent sur 3 relevés consécutifs (check-in ou test readiness) → **séance bloquée** ; un relevé sans douleur (test readiness compris) lève le blocage : l'app propose « Repos forcé » ou « J'assume le risque » (décision notée, marqueur ⚠ dans l'historique).
 
 ### 3) Semaine avec adaptation (readiness bas)
