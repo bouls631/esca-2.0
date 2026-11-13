@@ -8,6 +8,7 @@ import Aujourdhui from './screens/Aujourdhui';
 import SeanceScreen from './screens/Seance';
 import Salle from './screens/Salle';
 import Stats from './screens/Stats';
+import Reglages from './screens/Reglages';
 
 export interface AppData {
   checkins: Checkin[];
@@ -18,13 +19,14 @@ export interface AppData {
   profile: Profile;
 }
 
-export type Tab = 'today' | 'seance' | 'salle' | 'stats';
+export type Tab = 'today' | 'seance' | 'salle' | 'stats' | 'reglages';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'today', label: "Aujourd'hui" },
   { id: 'seance', label: 'Séance' },
   { id: 'salle', label: 'Salle' },
   { id: 'stats', label: 'Stats' },
+  { id: 'reglages', label: 'Réglages' },
 ];
 
 export default function App() {
@@ -63,6 +65,7 @@ export default function App() {
         {tab === 'seance' && <SeanceScreen data={data} now={now} go={setTab} />}
         {tab === 'salle' && <Salle data={data} now={now} />}
         {tab === 'stats' && <Stats data={data} now={now} />}
+        {tab === 'reglages' && <Reglages data={data} />}
       </main>
       <FloatingTimer />
       <nav className="safe-bottom fixed bottom-0 left-0 right-0 z-20 mx-auto flex max-w-md gap-1.5 border-t border-zinc-800 bg-zinc-950/95 px-2 py-2 backdrop-blur">
