@@ -6,6 +6,7 @@ import { readinessAssessment, ready7a } from '../src/lib/readiness';
 import { analyses, gauges, microWorkout } from '../src/lib/analyse-causes';
 import { cotationToNiveau, filterRoutes, RAPPEL_ROUTES, relaisToProfil, suggestRoutesFor, uniqueGrades } from '../src/lib/routes';
 import { coachLevelVerdict, cycleInfo, fingerBestByHold, fingerSpec, homeSpec, levelConfig, mobiliteSpec, profileSuccessStats, renfoSpec } from '../src/lib/plan';
+import { analyseBilan, bilanScoresNormalises, PRESCRIPTION, type BilanScores } from '../src/lib/bilan';
 import type { Checkin, ReadinessTest, Seance, Voie } from '../src/db';
 
 const MIN = 60_000;
@@ -232,6 +233,50 @@ describe('analyse des causes', () => {
     const vs = [voie(-10 * MIN, '6c', 'fin', 'force', ses[0].id)];
     expect(lastMardiIntense(U([checkin()], ses, vs), now)).toBe(true);
     expect(lastMardiIntense(U([checkin()], ses, []), now)).toBe(false);
+  });
+});
+
+describe('bilan initial → facteur limitant', () => {
+  const bon: BilanScores = {
+    flash: 80, doigtsMax: 10, doigtsRes: 12, bras: 15, gainage: 60,
+    endurance: 14, mobiliteDouleur: false, recup: 5,
+  };
+  const ctx = (over: Partial<Parameters<typeof generateSeance>[0]> = {}) => ({
+    type: 'intensite' as const, location: 'club' as const, energy: 3 as const, intent: 'standard' as const,
+    readinessDrop: false, mardiIntense: false, focus: 'devers' as const,
+    focusAutre: 'dalle' as const, liberation: false, gate7a: false, maisonSeries: 3, objectif: '6c' as const,
+    pratique: 'voie' as const, objectifBloc: 'rouge' as const, ...over,
+  });
+
+  it('détecte le doigt comme facteur limitant et prescribe 2 séances', () => {
+    const r = analyseBilan({ ...bon, doigtsRes: 2 });
+    expect(r.limite).toBe('doigts');
+    expect(r.prescription).toEqual(PRESCRIPTION.doigts);
+  });
+
+  it('départage les égalités par la priorité (doigts avant technique)', () => {
+    expect(analyseBilan({ ...bon, flash: 10, doigtsRes: 1 }).limite).toBe('doigts');
+  });
+
+  it('une douleur de mobilité devient prioritaire', () => {
+    expect(analyseBilan({ ...bon, mobiliteDouleur: true }).limite).toBe('mobilite');
+  });
+
+  it('les scores sont ramenés sur 100', () => {
+    const n = bilanScoresNormalises(bon);
+    expect(n.technique).toBe(80);
+    expect(n.bras).toBe(100);
+    expect(n.mobilite).toBe(100);
+  });
+
+  it('sans bilan le plan est inchangé, avec bilan un bloc Priorité est ajouté', () => {
+    const base = generateSeance(ctx());
+    expect(generateSeance(ctx({ limite: null })).blocs).toHaveLength(base.blocs.length);
+    const avec = generateSeance(ctx({ limite: 'endurance' }));
+    expect(avec.blocs).toHaveLength(base.blocs.length + 1);
+    expect(avec.blocs.at(-1)?.titre).toContain('Endurance');
+    expect(avec.note).toContain('Priorité bilan');
+    expect(generateSeance(ctx({ limite: 'endurance', location: 'maison' })).blocs.some((b) => b.titre.startsWith('Priorité'))).toBe(false);
   });
 });
 

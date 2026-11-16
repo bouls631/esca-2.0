@@ -9,10 +9,13 @@ import { evaluateSurmenage } from '../lib/surmenage';
 import { ready7a } from '../lib/readiness';
 import { lastFailCause, microWorkout } from '../lib/analyse-causes';
 import { coachLevelVerdict, cycleInfo, fingerBestByHold, fingerSpec, homeSpec, HOLD_LABELS, levelConfig, mobiliteSpec, profileSuccessStats, renfoSpec } from '../lib/plan';
+import { analyseBilan, LIMITE_LABELS } from '../lib/bilan';
 import { ReadinessSheet } from './ReadinessSheet';
+import { BilanSheet } from './BilanSheet';
 
 export default function Aujourdhui({ data, now, go }: { data: AppData; now: Date; go: (t: Tab) => void }) {
   const [readinessOpen, setReadinessOpen] = useState(false);
+  const [bilanOpen, setBilanOpen] = useState(false);
   const [fingerKg, setFingerKg] = useState<string>('0');
   const dayN = now.getDay();
   const key = format(now, 'yyyy-MM-dd');
@@ -25,6 +28,8 @@ export default function Aujourdhui({ data, now, go }: { data: AppData; now: Date
   const recentFails = data.voies.filter((v) => v.chute !== 'top' && v.date >= now.getTime() - 7 * 24 * 3600 * 1000);
   const fail = lastFailCause(recentFails);
   const isSessionDay = dayN === 2 || dayN === 4;
+  const lastBilan = [...data.bilans].sort((a, b) => b.createdAt - a.createdAt)[0];
+  const bilan = lastBilan ? analyseBilan(lastBilan.scores) : null;
 
   const cfg = levelConfig(data.profile.level ?? 5);
   const cyc = cycleInfo(now, data.profile.cycleStart, data.profile.weekOffset);
@@ -89,6 +94,26 @@ export default function Aujourdhui({ data, now, go }: { data: AppData; now: Date
             : `mardi : ${rotation.mardi} · jeudi : ${rotation.jeudi}`}
           {pStats.weak && ` · profil faible : ${PROFIL_LABELS[pStats.weak.profil]} (${pStats.weak.pct}% top)`}
         </p>
+      </Card>
+
+      <Card>
+        <div className="flex items-center justify-between">
+          <p className="font-mono text-sm font-bold uppercase tracking-wider text-zinc-200">Tests → programme</p>
+          <Tag tone={bilan ? 'amber' : 'zinc'}>{bilan ? 'BILAN FAIT' : 'À FAIRE'}</Tag>
+        </div>
+        <p className="mt-2 font-mono text-xs text-zinc-400">
+          {bilan
+            ? `Facteur limitant : ${LIMITE_LABELS[bilan.limite]} (${bilan.score}/100). Cette priorité est ajoutée à tes séances de club.`
+            : '8 tests (~15 min) avant le programme : on identifie ce qui te freine vraiment, puis on adapte les séances.'}
+        </p>
+        {bilan && (
+          <p className="mt-1 font-mono text-[11px] text-emerald-300">
+            {bilan.prescription.join(' · ')}
+          </p>
+        )}
+        <Btn size="lg" className="mt-3" variant={bilan ? 'ghost' : 'primary'} onClick={() => setBilanOpen(true)}>
+          {bilan ? 'Refaire les tests' : 'Faire les tests'}
+        </Btn>
       </Card>
 
       {verdict.state !== 'ok' && (
@@ -310,6 +335,7 @@ export default function Aujourdhui({ data, now, go }: { data: AppData; now: Date
 
       <TimerCard />
       <ReadinessSheet open={readinessOpen} onClose={() => setReadinessOpen(false)} profile={data.profile} existing={data.readiness} />
+      <BilanSheet open={bilanOpen} onClose={() => setBilanOpen(false)} bilans={data.bilans} />
     </div>
   );
 }

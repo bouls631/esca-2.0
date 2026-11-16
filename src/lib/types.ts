@@ -12,6 +12,8 @@ export type Chute = 'depart' | 'milieu' | 'fin' | 'top';
 export type Cause = 'force' | 'souffle' | 'technique' | 'mental' | 'doigts';
 export type Profil = 'dalle' | 'devers' | 'toit' | 'diedre';
 export type Axis = 'force' | 'endurance' | 'technique' | 'mental';
+/** Facteur limitant issu du bilan initial (tests avant programme). */
+export type Limite = 'doigts' | 'technique' | 'endurance' | 'bras' | 'mobilite' | 'recup';
 
 export interface Bloc {
   id: string;

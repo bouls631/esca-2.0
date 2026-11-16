@@ -11,7 +11,7 @@ Coach préventif et adaptatif pour un grimpeur **6a-6b en tête, 6c en travail, 
 ```bash
 npm install
 npm run dev      # http://localhost:5173
-npm test         # 23 tests unitaires (logique métier)
+npm test         # 39 tests unitaires (logique métier)
 npm run build    # build PWA offline-first → dist/
 ```
 
@@ -42,6 +42,7 @@ src/
     cycles.ts            Rotation anti-spécialisation (4 semaines ISO)
     surmenage.ts         Détecteur de surmenage 14 jours glissants
     readiness.ts         Test hebdo + facteur −20% + porte 7a
+    bilan.ts             Bilan initial (8 tests) → facteur limitant + prescription
     generator.ts         Générateur de séances adaptatif (mardi/jeudi/maison/repos)
     analyse-causes.ts    Analyse des chutes → jauges + prescriptions + micro-workouts
     timer.ts             Timer de récupération (vibration + bip, survit aux onglets)
@@ -52,11 +53,12 @@ src/
     CheckIn.tsx          check-in quadruple (lieu/énergie/douleurs/ressenti/intention)
     JournalVoie.tsx      niveau + point de chute + cause (20 s)
     ReadinessSheet.tsx   deadhang poutre + tractions + ressenti (dimanche, 5 min)
+    BilanSheet.tsx       8 tests initiaux → facteur limitant (avant le programme)
     Stats.tsx            calendrier 14 j, jauges, porte 7a, historique, export JSON
 tests/lib.test.ts        23 tests : surmenage, readiness, 7a, générateur, analyse
 ```
 
-### Schéma Dexie (v1)
+### Schéma Dexie (v3)
 
 | Table      | Index          | Contenu |
 |----------- | -------------- | ------- |
@@ -65,6 +67,8 @@ tests/lib.test.ts        23 tests : surmenage, readiness, 7a, générateur, anal
 | `seances`  | `++id, date`   | type, note d'adaptation, blocs (avec état fait/reporté) |
 | `voies`    | `++id, date, seanceId` | niveau, profil, chute, cause, n° d'essai |
 | `readiness`| `++id, date`   | deadhang s (prise), tractions, ressenti 1-10 |
+| `finger`   | `++id, date`   | séances poutre (prise, kg, séries, semaine) |
+| `bilans`   | `++id, date`   | 8 scores du bilan initial + facteur limitant |
 
 ## Logique métier
 
@@ -73,6 +77,9 @@ tests/lib.test.ts        23 tests : surmenage, readiness, 7a, générateur, anal
 2. **Récupération entre voies +5 min** (médianes des 2 dernières séances d'intensité) → **repos forcé**.
 3. **Énergie épuisée + séance < 48 h** → **repos actif** (mobilité 20 min).
    Override « J'assume le risque » : tout est possible, la décision est tracée (check-in `override`).
+
+### Bilan initial (tests avant programme)
+8 mesures (flash par profil, charge doigts 7 s/20 mm, répétitions doigts, tractions, gainage, 4×4, douleur mobilité, sommeil) → chaque axe ramené sur 100 → **facteur limitant** = le plus faible, départagé dans l'ordre doigts > technique > endurance > bras > mobilité > récup. Le facteur est injecté dans le générateur (`GenCtx.limite`) : un bloc « Priorité … » est ajouté aux séances de club. **Sans bilan, le plan reste inchangé.** Le bilan est rejouable à chaque décharge.
 
 ### Readiness (dimanche)
 deadhang (prise choisie) + tractions + ressenti /10. **Baisse > 20 % vs moyenne des 4 précédentes → intensité −20 %** (1 essai chrono sur le 6c au lieu de 2, plus de volume facile).

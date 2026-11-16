@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db, type Checkin, type FingerSession, type Profile, type ReadinessTest, type Seance, type Voie } from './db';
+import { db, type Bilan, type Checkin, type FingerSession, type Profile, type ReadinessTest, type Seance, type Voie } from './db';
 import { cx, FloatingTimer } from './components/ui';
 import Aujourdhui from './screens/Aujourdhui';
 import SeanceScreen from './screens/Seance';
@@ -16,6 +16,7 @@ export interface AppData {
   voies: Voie[];
   readiness: ReadinessTest[];
   finger: FingerSession[];
+  bilans: Bilan[];
   profile: Profile;
 }
 
@@ -35,15 +36,16 @@ export default function App() {
 
   const data = useLiveQuery<AppData, null>(() =>
     (async () => {
-      const [checkins, seances, voies, readiness, finger, profile] = await Promise.all([
+      const [checkins, seances, voies, readiness, finger, bilans, profile] = await Promise.all([
         db.checkins.toArray(),
         db.seances.toArray(),
         db.voies.toArray(),
         db.readiness.toArray(),
         db.finger.toArray(),
+        db.bilans.toArray(),
         db.profile.get('me'),
       ]);
-      return { checkins, seances, voies, readiness, finger, profile: profile ?? { id: 'me' } };
+      return { checkins, seances, voies, readiness, finger, bilans, profile: profile ?? { id: 'me' } };
     })(), [], null);
 
   if (data === null) {

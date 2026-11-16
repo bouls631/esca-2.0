@@ -23,8 +23,8 @@ Coach Voie : PWA française (React 19 + Vite 7 + TypeScript strict + Dexie), coa
 
 - `src/lib/` : logique métier pure, testée. Les composants ne doivent pas contenir d'algorithme.
   - `generator.ts` : génère la séance du jour à partir d'un `GenCtx` (mardi intensité, jeudi volume, maison, repos forcé).
-  - `surmenage.ts`, `readiness.ts`, `analyse-causes.ts`, `cycles.ts`, `plan.ts`, `routes.ts`.
-- `src/screens/` : écrans. `CheckIn.tsx` assemble le `GenCtx` et écrit checkin + séance.
+  - `surmenage.ts`, `readiness.ts`, `analyse-causes.ts`, `cycles.ts`, `plan.ts`, `routes.ts`, `bilan.ts`.
+- `src/screens/` : écrans. `CheckIn.tsx` assemble le `GenCtx` et écrit checkin + séance. `BilanSheet.tsx` : 8 tests initiaux → facteur limitant.
 - `src/App.tsx` : charge toutes les tables via `useLiveQuery`, et définit `AppData` (importé en `import type` par les écrans).
 - `src/db.ts` : schéma Dexie (v1, v2), types d'entités, export/import JSON.
 - `src/lib/types.ts` : unions et libellés FR. Les libellés affichés viennent d'ici.
@@ -43,6 +43,7 @@ Coach Voie : PWA française (React 19 + Vite 7 + TypeScript strict + Dexie), coa
 - Surmenage (14 j glissants) : douleurs sur les 3 derniers relevés (check-in ou test readiness) avec douleur → bloqué (`pains3`) ; un relevé sans douleur coupe la série ; récupération entre voies en hausse (`restDelta`) → bloqué ; énergie 1 et séance < 48 h → repos actif (`epuise48`). Source : `surmenage.ts`.
 - « J'assume le risque » est toujours possible, mais le check-in garde `override: true` et Stats l'affiche avec ⚠.
 - Readiness : baisse > 20 % vs moyenne des 4 tests précédents → intensité −20 %.
+- Bilan initial (table `bilans`, db v3) : 8 scores → facteur limitant = axe le plus faible, départagé doigts > technique > endurance > bras > mobilité > récup (`bilan.ts`). Stocké à l'enregistrement, injecté dans `GenCtx.limite` par `CheckIn.tsx` ; le générateur ajoute alors un bloc « Priorité … » **uniquement en club**. Sans bilan (`limite: null`), le plan est identique — ne pas casser les tests qui vérifient les blocs exacts. Le bilan est rejouable à chaque décharge.
 - Porte 7a : 3 tops 6c le mardi en 4 semaines + readiness stable + pas de blocage.
 - Mardi intense (essais 6c/7a loggés) → jeudi limité à 7 voies, sans 6c.
 - Pratique voie/bloc (check-in, club uniquement) : `Checkin.pratique` (défaut voie). Bloc = couleurs `COULEURS_BLOC` (jaune → rose), objectif `profile.objectifBloc` (défaut rouge), bornées au jaune/rose, sans `niveau` (donc pas de journal voie).
@@ -64,5 +65,5 @@ Coach Voie : PWA française (React 19 + Vite 7 + TypeScript strict + Dexie), coa
 
 ## Docs
 
-- `README.md` : la ligne « 23 tests » est périmée, la suite compte 33 tests.
+- `README.md` : garder le nombre de tests synchro avec `npm test` (39 actuellement).
 - Ce fichier et `README.md` décrivent les règles métier ; si une règle change, mettre à jour les deux.

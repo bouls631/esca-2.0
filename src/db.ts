@@ -1,5 +1,6 @@
 import Dexie, { type EntityTable } from 'dexie';
-import type { Bloc, Cause, Chute, CouleurBloc, Energy, Feel, Intent, Location, Niveau, Objectif, Pain, Pratique, Profil, SessionType } from './lib/types';
+import type { BilanScores } from './lib/bilan';
+import type { Bloc, Cause, Chute, CouleurBloc, Energy, Feel, Intent, Limite, Location, Niveau, Objectif, Pain, Pratique, Profil, SessionType } from './lib/types';
 
 export * from './lib/types';
 
@@ -76,6 +77,14 @@ export interface FingerSession {
   createdAt: number;
 }
 
+export interface Bilan {
+  id?: number;
+  date: string;
+  scores: BilanScores;
+  limite: Limite; // facteur limitant calculé à l'enregistrement
+  createdAt: number;
+}
+
 export const db = new Dexie('coach-voie') as Dexie & {
   profile: EntityTable<Profile, 'id'>;
   checkins: EntityTable<Checkin, 'id'>;
@@ -83,6 +92,7 @@ export const db = new Dexie('coach-voie') as Dexie & {
   voies: EntityTable<Voie, 'id'>;
   readiness: EntityTable<ReadinessTest, 'id'>;
   finger: EntityTable<FingerSession, 'id'>;
+  bilans: EntityTable<Bilan, 'id'>;
 };
 
 db.version(1).stores({
@@ -102,6 +112,16 @@ db.version(2).stores({
   finger: '++id, date',
 });
 
+db.version(3).stores({
+  profile: 'id',
+  checkins: '++id, date',
+  seances: '++id, date',
+  voies: '++id, date, seanceId',
+  readiness: '++id, date',
+  finger: '++id, date',
+  bilans: '++id, date',
+});
+
 // Export JSON complet (backup) — appelé par la page Stats.
 export function exportAll(): Promise<Record<string, unknown>> {
   return Promise.all([
@@ -111,23 +131,25 @@ export function exportAll(): Promise<Record<string, unknown>> {
     db.voies.toArray(),
     db.readiness.toArray(),
     db.finger.toArray(),
-  ]).then(([profile, checkins, seances, voies, readiness, finger]) => ({
+    db.bilans.toArray(),
+  ]).then(([profile, checkins, seances, voies, readiness, finger, bilans]) => ({
     app: 'coach-voie',
-    version: 2,
+    version: 3,
     exportedAt: new Date().toISOString(),
-    profile, checkins, seances, voies, readiness, finger,
+    profile, checkins, seances, voies, readiness, finger, bilans,
   }));
 }
 
 // Import JSON complet (restauration).
 export async function importAll(raw: Record<string, unknown>): Promise<void> {
   if (raw.app !== 'coach-voie') throw new Error('Fichier invalide');
-  await db.transaction('rw', [db.profile, db.checkins, db.seances, db.voies, db.readiness, db.finger], async () => {
+  await db.transaction('rw', [db.profile, db.checkins, db.seances, db.voies, db.readiness, db.finger, db.bilans], async () => {
     if (Array.isArray(raw.profile)) { await db.profile.clear(); await db.profile.bulkPut(raw.profile as Profile[]); }
     if (Array.isArray(raw.checkins)) { await db.checkins.clear(); await db.checkins.bulkPut(raw.checkins as Checkin[]); }
     if (Array.isArray(raw.seances)) { await db.seances.clear(); await db.seances.bulkPut(raw.seances as Seance[]); }
     if (Array.isArray(raw.voies)) { await db.voies.clear(); await db.voies.bulkPut(raw.voies as Voie[]); }
     if (Array.isArray(raw.readiness)) { await db.readiness.clear(); await db.readiness.bulkPut(raw.readiness as ReadinessTest[]); }
     if (Array.isArray(raw.finger)) { await db.finger.clear(); await db.finger.bulkPut(raw.finger as FingerSession[]); }
+    if (Array.isArray(raw.bilans)) { await db.bilans.clear(); await db.bilans.bulkPut(raw.bilans as Bilan[]); }
   });
 }

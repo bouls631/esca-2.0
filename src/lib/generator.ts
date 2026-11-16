@@ -1,7 +1,8 @@
-import type { Bloc, CouleurBloc, Energy, Intent, Niveau, Objectif, Pratique, Profil, SessionType } from './types';
+import type { Bloc, CouleurBloc, Energy, Intent, Limite, Niveau, Objectif, Pratique, Profil, SessionType } from './types';
 import { COULEURS_BLOC } from './types';
 import type { Checkin, Seance } from '../db';
 import { PLAN_GRADES } from './plan';
+import { LIMITE_LABELS, PRESCRIPTION } from './bilan';
 
 export interface GenCtx {
   type: SessionType;
@@ -18,6 +19,7 @@ export interface GenCtx {
   objectif: Objectif;
   pratique: Pratique;
   objectifBloc: CouleurBloc;
+  limite?: Limite | null; // facteur limitant du bilan initial
 }
 
 let seq = 0;
@@ -36,7 +38,7 @@ export const couleurAt = (obj: CouleurBloc, d: number): CouleurBloc =>
   COULEURS_BLOC[Math.max(0, Math.min(COULEURS_BLOC.length - 1, COULEURS_BLOC.indexOf(obj) + d))];
 
 /** Génère la séance adaptative du jour (mardi intensité / jeudi volume) ou un plan maison/repos. */
-export function generateSeance(ctx: GenCtx): { type: SessionType; note?: string; blocs: Bloc[] } {
+function generateSeanceBase(ctx: GenCtx): { type: SessionType; note?: string; blocs: Bloc[] } {
   if (ctx.location === 'repos_force') {
     return {
       type: 'volume',
@@ -112,6 +114,21 @@ export function generateSeance(ctx: GenCtx): { type: SessionType; note?: string;
       ? `Mardi était intense → 7 voies max, aucun ${T} en finisher. Chute sur ${g(-1)} → redescends tout de suite : voie suivante, pas de nouvel essai.`
       : `Mardi facile → 9 voies dont 1× ${T} "test fatigue" en finisher (${profilText(ctx.focus)}). Chute sur ${g(-1)} → redescends : voie suivante, pas de nouvel essai.`,
     blocs: volumeBlocs(ctx.mardiIntense, ctx.focus, T),
+  };
+}
+
+/**
+ * Ajoute la prescription du bilan initial à la séance de club.
+ * Sans bilan (ou hors club), le plan reste strictement identique.
+ */
+export function generateSeance(ctx: GenCtx): { type: SessionType; note?: string; blocs: Bloc[] } {
+  const base = generateSeanceBase(ctx);
+  if (!ctx.limite || ctx.location !== 'club') return base;
+  const label = LIMITE_LABELS[ctx.limite];
+  return {
+    ...base,
+    note: `${base.note ?? ''} · Priorité bilan : ${label}`.trim(),
+    blocs: [...base.blocs, bloc(`Priorité ${label}`, PRESCRIPTION[ctx.limite].join(' · '))],
   };
 }
 
