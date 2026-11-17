@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import type { AppData, Tab } from '../App';
 import { db, FEEL_LABELS, NIVEAU_LABELS, PROFIL_LABELS, SESSION_LABELS, type Bloc, type Niveau, type Profil, type Ressenti } from '../db';
 import { Btn, Card, Chip, Tag, TimerCard, cx, useTimer } from '../components/ui';
+import { Aide } from '../components/Aide';
 import { CheckInSheet } from './CheckIn';
 import { JournalVoie } from './JournalVoie';
 import { evaluateSurmenage } from '../lib/surmenage';
@@ -73,6 +74,7 @@ export default function Seance({ data, now, go }: { data: AppData; now: Date; go
                 dayN === 4 ? `Focus rotation : ${focus ? PROFIL_LABELS[focus] : 'au choix'}` :
                 `Prochaine séance officielle : ${dayN < 2 ? 'mardi' : 'jeudi'} (${dayN < 2 ? 'intensité' : 'volume'}).`}
             </p>
+            <Aide text="Calendrier officiel : mardi = intensité (voie max, fraîcheur), jeudi = volume/endurance. Un check-in un autre jour force le type de séance. Le check-in évalue le surmenage avant de générer le plan." />
             <Btn size="lg" className="mt-3" onClick={() => setCheckinOpen(true)}>Check-in (30 s)</Btn>
           </Card>
           <TimerCard />
@@ -91,6 +93,7 @@ export default function Seance({ data, now, go }: { data: AppData; now: Date; go
               )}
             </div>
             {seance.note && <p className="mt-2 font-mono text-xs leading-relaxed text-amber-200">{seance.note}</p>}
+            <Aide text="Sur chaque bloc : « Fait » valide l'exercice, « Reporté » le décale, « Noter » ouvre le journal de voie. Les boutons de repos lancent le chrono (vibration + bip). Glisse à droite = Fait, à gauche = Reporté, vers le bas = Noter." />
             {verdict.state === 'bloque' && !(ck?.override ?? false) && (
               <Card className="mt-3 border-red-600 bg-red-950/40">
                 <p className="font-mono text-xs font-bold text-red-200">Séance bloquée par le détecteur de surmenage</p>

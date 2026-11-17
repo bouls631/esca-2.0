@@ -36,6 +36,7 @@ src/
   styles.css             Tailwind v4 + thème sombre terminal
   components/
     ui.tsx               Btn/Card/Chip/Tag/Bar/TimerCard (gros boutons, thumb zone)
+    Aide.tsx             Aide contextuelle repliable (? aide) sur tous les écrans
     Sheet.tsx            Feuilles modales basses (une main)
   lib/
     types.ts             Types métier + libellés FR

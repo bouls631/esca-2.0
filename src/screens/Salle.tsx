@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import type { AppData } from '../App';
 import { Btn, Card, Chip, Tag } from '../components/ui';
+import { Aide } from '../components/Aide';
 import { cotationToNiveau, filterRoutes, RAPPEL_ROUTES, relaisToProfil, uniqueGrades, type OblykRoute } from '../lib/routes';
 import { JournalVoie } from './JournalVoie';
 
@@ -80,6 +81,7 @@ export default function Salle({ data, now }: { data: AppData; now: Date }) {
           <div>
             <p className="font-mono text-sm font-bold uppercase tracking-wider text-zinc-100">Roue des voies · RAPPEL Riom</p>
             <p className="font-mono text-xs text-zinc-400">{RAPPEL_ROUTES.length} voies montées (36 relais · Oblyk)</p>
+            <Aide text="Filtre par cotation et secteur, puis lance la roue : elle tire au hasard dans les voies affichées. « Noter cette voie » l'ajoute au journal. Le catalogue vient d'Oblyk (actualisé avec npm run fetch-routes)." />
           </div>
           <Tag tone="emerald">{pool.length} voies</Tag>
         </div>

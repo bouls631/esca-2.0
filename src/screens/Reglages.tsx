@@ -1,6 +1,7 @@
 import { db, COULEURS_BLOC, OBJECTIFS, type CouleurBloc, type Objectif } from '../db';
 import type { AppData } from '../App';
 import { Card, Chip } from '../components/ui';
+import { Aide } from '../components/Aide';
 import { grade } from '../lib/generator';
 
 export default function Reglages({ data }: { data: AppData }) {
@@ -20,6 +21,7 @@ export default function Reglages({ data }: { data: AppData }) {
       <Card>
         <p className="font-mono text-sm font-bold uppercase tracking-wider text-zinc-200">Objectif voie</p>
         <p className="mt-1 font-mono text-xs text-zinc-400">Ton projet : il pilote les cotations de la séance intensité (mardi).</p>
+        <Aide text="Indépendant du curseur de niveau de l'onglet Aujourd'hui : l'objectif pilote les cotations du mardi, le curseur pilote les doigts, la mobilité et le renforcement. Défaut : 6c." />
         <div className="mt-3 grid grid-cols-4 gap-2">
           {OBJECTIFS.map((o) => (
             <Chip key={o} selected={objectif === o} onClick={() => void setObjectif(o)} className="justify-center">{o}</Chip>
@@ -33,6 +35,7 @@ export default function Reglages({ data }: { data: AppData }) {
       <Card>
         <p className="font-mono text-sm font-bold uppercase tracking-wider text-zinc-200">Objectif bloc</p>
         <p className="mt-1 font-mono text-xs text-zinc-400">Le bloc visé pilote la séance bloc.</p>
+        <Aide text="Couleurs du plus facile au plus dur : jaune, orange, vert, bleu, rouge, noir, rose. Défaut : rouge." />
         <div className="mt-3 flex flex-wrap gap-2">
           {COULEURS_BLOC.map((c) => (
             <Chip key={c} selected={objectifBloc === c} onClick={() => void setObjectifBloc(c)}>{c}</Chip>

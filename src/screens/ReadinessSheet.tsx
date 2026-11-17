@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { db, PAIN_LABELS, type Pain, type Profile, type ReadinessTest } from '../db';
 import { Btn, Card, Chip, Tag } from '../components/ui';
+import { Aide } from '../components/Aide';
 import { Sheet } from '../components/Sheet';
 import { readinessAssessment } from '../lib/readiness';
 
@@ -60,14 +61,16 @@ export function ReadinessSheet({ open, onClose, profile, existing }: { open: boo
       <div className="mt-4 space-y-4">
         <div>
           <p className="mb-1.5 font-mono text-xs uppercase tracking-widest text-zinc-500">Prise de référence</p>
-          <div className="flex flex-wrap gap-2">
+          <Aide text="Garde toujours la même prise (et les mêmes conditions) pour que les tests soient comparables d'une semaine à l'autre." />
+          <div className="mt-2 flex flex-wrap gap-2">
             {HOLDS.map((h) => <Chip key={h} selected={hold === h} onClick={() => setHold(h)}>{h}</Chip>)}
           </div>
         </div>
 
         <div>
           <p className="mb-1.5 font-mono text-xs uppercase tracking-widest text-zinc-500">Deadhang sec — secondes</p>
-          <div className="flex items-center gap-3">
+          <Aide text="Suspension bras tendus, sans élan, chrono en main. 2 essais, note le meilleur. C'est la mesure principale du test." />
+          <div className="mt-2 flex items-center gap-3">
             <Chip onClick={() => setDeadhangS((s) => Math.max(5, s - 5))}>−5s</Chip>
             <p className="flex-1 text-center font-mono text-3xl font-black tabular-nums text-emerald-400">{deadhangS}s</p>
             <Chip onClick={() => setDeadhangS((s) => s + 5)}>+5s</Chip>
@@ -76,7 +79,8 @@ export function ReadinessSheet({ open, onClose, profile, existing }: { open: boo
 
         <div>
           <p className="mb-1.5 font-mono text-xs uppercase tracking-widest text-zinc-500">Tractions (anneaux, jusqu'à l'échec)</p>
-          <div className="flex items-center gap-3">
+          <Aide text="Tractions strictes, menton au-dessus, sans élan. Avec le deadhang, sert à calculer la baisse de >20% qui allège la semaine." />
+          <div className="mt-2 flex items-center gap-3">
             <Chip onClick={() => setTractions((t) => Math.max(1, t - 1))}>−1</Chip>
             <p className="flex-1 text-center font-mono text-3xl font-black tabular-nums text-emerald-400">{tractions}</p>
             <Chip onClick={() => setTractions((t) => t + 1)}>+1</Chip>
@@ -85,7 +89,8 @@ export function ReadinessSheet({ open, onClose, profile, existing }: { open: boo
 
         <div>
           <p className="mb-1.5 font-mono text-xs uppercase tracking-widest text-zinc-500">Ressenti global</p>
-          <div className="flex flex-wrap gap-1.5">
+          <Aide text="1 = dans le caniveau, 10 = machine. Note-le honnêtement : il complète les deux mesures objectives." />
+          <div className="mt-2 flex flex-wrap gap-1.5">
             {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
               <Chip key={n} selected={ressenti === n} onClick={() => setRessenti(n)} className="px-2.5">{n}</Chip>
             ))}
@@ -95,7 +100,8 @@ export function ReadinessSheet({ open, onClose, profile, existing }: { open: boo
 
         <div>
           <p className="mb-1.5 font-mono text-xs uppercase tracking-widest text-zinc-500">Douleurs maintenant (vide = aucune)</p>
-          <div className="flex flex-wrap gap-2">
+          <Aide text="Une douleur notée ici compte dans la série de 3 relevés qui peut bloquer les séances. « Aucune » coupe cette série." />
+          <div className="mt-2 flex flex-wrap gap-2">
             {PAINS.map((p) => (
               <Chip key={p} selected={pains.includes(p)} onClick={() => setPains(pains.includes(p) ? pains.filter((x) => x !== p) : [...pains, p])}>{PAIN_LABELS[p]}</Chip>
             ))}

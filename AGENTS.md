@@ -24,6 +24,7 @@ Coach Voie : PWA française (React 19 + Vite 7 + TypeScript strict + Dexie), coa
 - `src/lib/` : logique métier pure, testée. Les composants ne doivent pas contenir d'algorithme.
   - `generator.ts` : génère la séance du jour à partir d'un `GenCtx` (mardi intensité, jeudi volume, maison, repos forcé).
   - `surmenage.ts`, `readiness.ts`, `analyse-causes.ts`, `cycles.ts`, `plan.ts`, `routes.ts`, `bilan.ts`.
+- `src/components/Aide.tsx` : aide contextuelle repliable (`? aide`) utilisée sur tous les écrans.
 - `src/screens/` : écrans. `CheckIn.tsx` assemble le `GenCtx` et écrit checkin + séance. `BilanSheet.tsx` : 8 tests initiaux → facteur limitant.
 - `src/App.tsx` : charge toutes les tables via `useLiveQuery`, et définit `AppData` (importé en `import type` par les écrans).
 - `src/db.ts` : schéma Dexie (v1, v2), types d'entités, export/import JSON.

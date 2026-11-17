@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import type { AppData, Tab } from '../App';
 import { db, CAUSE_LABELS, PROFIL_LABELS } from '../db';
 import { Btn, Card, Chip, Tag, TimerCard } from '../components/ui';
+import { Aide } from '../components/Aide';
 import { SeqTimerCard } from '../components/SeqTimerCard';
 import { rotationFor } from '../lib/cycles';
 import { evaluateSurmenage } from '../lib/surmenage';
@@ -94,6 +95,7 @@ export default function Aujourdhui({ data, now, go }: { data: AppData; now: Date
             : `mardi : ${rotation.mardi} · jeudi : ${rotation.jeudi}`}
           {pStats.weak && ` · profil faible : ${PROFIL_LABELS[pStats.weak.profil]} (${pStats.weak.pct}% top)`}
         </p>
+        <Aide text="Rotation de 4 semaines : on change de profil de mur chaque semaine pour éviter la spécialisation. La semaine 4 est libre (profils au choix ou récupération)." />
       </Card>
 
       <Card>
@@ -178,6 +180,7 @@ export default function Aujourdhui({ data, now, go }: { data: AppData; now: Date
           onComplete={() => void logFingerSession()}
         >
           <p className="mt-2 font-mono text-xs text-zinc-400">{fSpec.hint}</p>
+          <Aide text="Plan poutre 8 semaines sur 12 : répétitions 7 s/3 s (S1-3), récup (S4), suspensions max 10 s (S5-7), test 10 s (S8), puis rebouclage. Deux séances/semaine : lundi et samedi, à 48 h d'intervalle. Note le lest utilisé pour suivre tes records." />
           {dayN === 6 && (
             <p className="mt-1 font-mono text-xs text-amber-300">
               2e séance de la semaine, à 48 h de lundi. Doigts frais, jamais après une grosse séance de bloc.
@@ -267,6 +270,7 @@ export default function Aujourdhui({ data, now, go }: { data: AppData; now: Date
               ? `Dernier test le ${format(lastReadiness.createdAt, 'd MMM', { locale: undefined })} — plus de 9 jours.`
               : 'Dimanche soir : 5 min pour calibrer la semaine (deadhang poutre + tractions + ressenti).'}
           </p>
+          <Aide text="Dimanche soir, 5 min : deadhang sur ta prise de référence + tractions + ressenti. Sert à détecter une baisse >20% et à alléger la semaine suivante." />
           <Btn size="lg" className="mt-3" onClick={() => setReadinessOpen(true)}>Faire le test</Btn>
         </Card>
       )}
@@ -289,6 +293,7 @@ export default function Aujourdhui({ data, now, go }: { data: AppData; now: Date
             Semaine {cyc.week}/12 {cyc.deload ? '· décharge' : ''}
           </Tag>
         </div>
+        <Aide text="Cycle de 12 semaines : S1-4 adaptation, S5-8 intensification, S9-12 conversion. Les semaines 4/8/12 sont des décharges (moins de volume, pas de lest). Le cycle avance tout seul ; les boutons S−1/S+1 permettent de corriger." />
 
         <div className="mt-3 flex items-center gap-2">
           <Chip onClick={() => void setLevel(cfg.level - 1)}>−</Chip>
@@ -312,6 +317,7 @@ export default function Aujourdhui({ data, now, go }: { data: AppData; now: Date
                 ? `⚠ ${Math.round((cVerdict.rate ?? 0) * 100)}% sur ${cVerdict.n} voies à ${cfg.grade} → consolide un cran en dessous.`
                 : `✓ ${Math.round((cVerdict.rate ?? 0) * 100)}% sur ${cVerdict.n} voies à ${cfg.grade} → niveau adapté, on consolide.`}
         </p>
+        <Aide text="L'avis du coach demande au moins 5 voies à la cotation cible, sur 3 jours différents, dans les 21 derniers jours. ≥70% de tops → monter d'un cran ; ≤20% → consolidé en dessous." />
         {cVerdict.delta !== undefined && cVerdict.delta !== 0 && (
           <Btn className="mt-2 w-full" onClick={() => void setLevel(cfg.level + cVerdict.delta!)}>
             Appliquer le conseil ({cVerdict.delta > 0 ? '+1 cran' : '−1 cran'})

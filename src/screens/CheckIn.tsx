@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { db, ENERGY_LABELS, FEEL_LABELS, INTENT_LABELS, LOCATION_LABELS, PAIN_LABELS, PRATIQUE_LABELS, SESSION_LABELS, type Checkin, type Energy, type Pratique, type SessionType } from '../db';
 import type { AppData } from '../App';
 import { Btn, Card, Chip } from '../components/ui';
+import { Aide } from '../components/Aide';
 import { Sheet } from '../components/Sheet';
 import { rotationFor } from '../lib/cycles';
 import { evaluateSurmenage, lastMardiIntense } from '../lib/surmenage';
@@ -137,7 +138,8 @@ export function CheckInSheet({ open, onClose, data, now, onDone }: {
       <div className="space-y-4">
         <div>
           <p className="mb-1.5 font-mono text-xs uppercase tracking-widest text-zinc-500">Localisation</p>
-          <div className="flex flex-wrap gap-2">
+          <Aide text="Club = séance mardi/jeudi. Maison = poutre, anneaux, corde à sauter. Repos forcé = mobilité 20 min, aucune prise." />
+          <div className="mt-2 flex flex-wrap gap-2">
             {(Object.entries(LOCATION_LABELS) as [Location, string][]).map(([k, lbl]) => (
               <Chip key={k} selected={location === k} onClick={() => setLocation(k)}>{lbl}</Chip>
             ))}
@@ -147,7 +149,8 @@ export function CheckInSheet({ open, onClose, data, now, onDone }: {
         {location === 'club' && (
           <div>
             <p className="mb-1.5 font-mono text-xs uppercase tracking-widest text-zinc-500">Pratique</p>
-            <div className="flex flex-wrap gap-2">
+            <Aide text="Voie = cotations (6a → 7a), notées dans le journal avec le profil du mur. Bloc = couleurs (jaune → rose), sans journal de voie." />
+            <div className="mt-2 flex flex-wrap gap-2">
               {(Object.entries(PRATIQUE_LABELS) as [Pratique, string][]).map(([k, lbl]) => (
                 <Chip key={k} selected={pratique === k} onClick={() => setPratique(k)}>{lbl}</Chip>
               ))}
@@ -157,7 +160,8 @@ export function CheckInSheet({ open, onClose, data, now, onDone }: {
 
         <div>
           <p className="mb-1.5 font-mono text-xs uppercase tracking-widest text-zinc-500">Énergie</p>
-          <div className="grid grid-cols-4 gap-2">
+          <Aide text="1 = épuisé, 4 = pleine forme. Énergie 1 et dernière séance il y a moins de 48 h → repos actif proposé (20 min de mobilité)." />
+          <div className="mt-2 grid grid-cols-4 gap-2">
             {ENERGY.map((e) => (
               <Chip key={e} selected={energy === e} onClick={() => setEnergy(e)} className="min-h-12">{ENERGY_LABELS[e]}</Chip>
             ))}
@@ -166,7 +170,8 @@ export function CheckInSheet({ open, onClose, data, now, onDone }: {
 
         <div>
           <p className="mb-1.5 font-mono text-xs uppercase tracking-widest text-zinc-500">Douleurs</p>
-          <div className="flex flex-wrap gap-2">
+          <Aide text="3 derniers relevés avec douleur (check-in ou test readiness) → séance bloquée. Un relevé « aucune » coupe la série." />
+          <div className="mt-2 flex flex-wrap gap-2">
             {PAINS.map((p) => (
               <Chip key={p} selected={pains.includes(p)} onClick={() => togglePain(p)}>{PAIN_LABELS[p]}</Chip>
             ))}
@@ -175,7 +180,8 @@ export function CheckInSheet({ open, onClose, data, now, onDone }: {
 
         <div>
           <p className="mb-1.5 font-mono text-xs uppercase tracking-widest text-zinc-500">Ressenti dernière séance</p>
-          <div className="grid grid-cols-4 gap-2">
+          <Aide text="Facile / moyen / dur / échec : combiné à la récupération entre voies, ça alimente le détecteur de surmenage (14 jours glissants)." />
+          <div className="mt-2 grid grid-cols-4 gap-2">
             {FEELS.map((f) => (
               <Chip key={f} selected={feel === f} onClick={() => setFeel(f)} className="min-h-12">{FEEL_LABELS[f]}</Chip>
             ))}
@@ -184,7 +190,8 @@ export function CheckInSheet({ open, onClose, data, now, onDone }: {
 
         <div>
           <p className="mb-1.5 font-mono text-xs uppercase tracking-widest text-zinc-500">Objectif ajustement</p>
-          <div className="grid grid-cols-4 gap-2">
+          <Aide text="Standard = plan normal. Alléger = moins de volume. Renforcer = on insiste. Reporter = bascule en mode volume (jeudi)." />
+          <div className="mt-2 grid grid-cols-4 gap-2">
             {INTENTS.map((i) => (
               <Chip key={i} selected={intent === i} onClick={() => setIntent(i)} className="min-h-12">{INTENT_LABELS[i]}</Chip>
             ))}

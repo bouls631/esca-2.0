@@ -4,6 +4,7 @@ import { fr } from 'date-fns/locale';
 import type { AppData } from '../App';
 import { AXIS_LABELS, exportAll, importAll, PROFIL_LABELS, type Axis, type Niveau } from '../db';
 import { Bar, Btn, Card, Tag } from '../components/ui';
+import { Aide } from '../components/Aide';
 import { ReadinessSheet } from './ReadinessSheet';
 import { evaluateSurmenage } from '../lib/surmenage';
 import { ready7a, readinessAssessment } from '../lib/readiness';
@@ -66,6 +67,7 @@ export default function Stats({ data, now }: { data: AppData; now: Date }) {
     <div className="space-y-3">
       <Card>
         <p className="font-mono text-xs font-bold uppercase tracking-widest text-zinc-500">Porte 7a</p>
+        <Aide text="3 tops 6c le mardi sur 4 semaines + readiness stable (pas de baisse >20%) + aucun blocage surmenage sur 14 jours. Le mardi passe alors en projet 7a (3 essais)." />
         <div className="mt-2 space-y-1">
           {gate.checks.map((c) => (
             <p key={c.label} className={`font-mono text-xs ${c.ok ? 'text-emerald-400' : 'text-zinc-400'}`}>
@@ -80,6 +82,7 @@ export default function Stats({ data, now }: { data: AppData; now: Date }) {
 
       <Card>
         <p className="font-mono text-xs font-bold uppercase tracking-widest text-zinc-500">Jauges (14 jours)</p>
+        <Aide text="Calculées à partir de tes chutes sur 14 jours (cause + point de chute). Une jauge basse déclenche une prescription : endurance, lock-off, technique ou mental." />
         <div className="mt-3 space-y-3">
           {AXES.map((a) => <Bar key={a} label={AXIS_LABELS[a]} score={g[a].score} n={g[a].n} />)}
         </div>
@@ -140,6 +143,7 @@ export default function Stats({ data, now }: { data: AppData; now: Date }) {
 
       <Card>
         <p className="font-mono text-xs font-bold uppercase tracking-widest text-zinc-500">Réussite par profil</p>
+        <Aide text="Taux de top par type de mur sur tes 40 dernières voies. Le profil le plus faible (avec au moins 2 voies notées) est priorisé le jeudi." />
         {pStats.list.length === 0 ? (
           <p className="mt-2 font-mono text-xs text-zinc-500">Note des voies pour voir tes taux par profil.</p>
         ) : (
@@ -182,6 +186,7 @@ export default function Stats({ data, now }: { data: AppData; now: Date }) {
       <Card>
         <div className="flex items-center justify-between">
           <p className="font-mono text-xs font-bold uppercase tracking-widest text-zinc-500">Readiness</p>
+          <Aide text="Test du dimanche : deadhang + tractions + ressenti. Compare-le à la moyenne des 4 précédents ; une baisse >20% allège l'intensité de la semaine suivante." />
           <Btn className="min-h-8 px-2 py-1 text-xs" onClick={() => setReadinessOpen(true)}>Nouveau test</Btn>
         </div>
         {ra.last ? (

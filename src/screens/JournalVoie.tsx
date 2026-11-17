@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { db, CHUTE_LABELS, CAUSE_LABELS, NIVEAU_LABELS, PROFIL_LABELS, NIVEAUX_ORDER, type Niveau, type Profil, type Chute, type Cause } from '../db';
 import { Btn, Chip } from '../components/ui';
+import { Aide } from '../components/Aide';
 import { Sheet } from '../components/Sheet';
 
 const CHUTES: Chute[] = ['depart', 'milieu', 'fin', 'top'];
@@ -77,6 +78,7 @@ export function JournalVoie({ open, onClose, seanceId, blocId, defaultNiveau, de
         )}
         <div>
           <p className="mb-1.5 font-mono text-xs uppercase tracking-widest text-zinc-500">Niveau</p>
+          <Aide text="Cotation de la voie. Tout ce qui est sous 6a est enregistré « 5+ ». Sert à l'avis du coach sur ta cotation cible." />
           <div className="grid grid-cols-6 gap-1.5">
             {NIVEAUX_ORDER.map((n) => (
               <Chip key={n} selected={niveau === n} onClick={() => setNiveau(n)} className="min-h-12 px-1">{NIVEAU_LABELS[n]}</Chip>
@@ -86,6 +88,7 @@ export function JournalVoie({ open, onClose, seanceId, blocId, defaultNiveau, de
 
         <div>
           <p className="mb-1.5 font-mono text-xs uppercase tracking-widest text-zinc-500">Profil du mur</p>
+          <Aide text="Forme du mur : dalle, dévers, toit, dièdre. Le profil où tu réussis le moins devient la priorité du jeudi." />
           <div className="grid grid-cols-5 gap-1.5">
             {PROFILS.map((p) => (
               <Chip key={p} selected={profil === p} onClick={() => setProfil(p)} className="min-h-12 px-1">{PROFIL_LABELS[p]}</Chip>
@@ -95,6 +98,7 @@ export function JournalVoie({ open, onClose, seanceId, blocId, defaultNiveau, de
 
         <div>
           <p className="mb-1.5 font-mono text-xs uppercase tracking-widest text-zinc-500">Point de chute</p>
+          <Aide text="Départ / milieu / fin (le top du haut loupé) / top ✓. Combiné à la cause, ça pilote les micro-workouts du vendredi." />
           <div className="grid grid-cols-4 gap-1.5">
             {CHUTES.map((c) => (
               <Chip key={c} selected={chute === c} onClick={() => setChute(c)} className="min-h-12 px-1">{CHUTE_LABELS[c]}</Chip>
@@ -105,6 +109,7 @@ export function JournalVoie({ open, onClose, seanceId, blocId, defaultNiveau, de
         {!isTop && (
           <div>
             <p className="mb-1.5 font-mono text-xs uppercase tracking-widest text-zinc-500">Cause de la chute</p>
+            <Aide text="3 chutes en fin de voie → endurance ; 2 en milieu sur dévers/toit → lock-off ; 2 causes mentales → respiration 4-7-8. La prescription apparaît dans Stats." />
             <div className="space-y-1.5">
               {CAUSES.map((c) => (
                 <Chip key={c} selected={cause === c} onClick={() => setCause(c)} className="w-full text-left min-h-12 px-3 py-2.5 text-left">{CAUSE_LABELS[c]}</Chip>
